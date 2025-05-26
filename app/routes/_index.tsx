@@ -2,53 +2,35 @@ import type { MetaFunction } from "@remix-run/node";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: "curlmate" },
+    { name: "description", content: "Oauth2 tokens for services" },
   ];
 };
 
 export default function Index() {
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="flex flex-col items-center gap-16">
-        <header className="flex flex-col items-center gap-9">
-          <h1 className="leading text-2xl font-bold text-gray-800 dark:text-gray-100">
-            Welcome to <span className="sr-only">Remix</span>
-          </h1>
-          <div className="h-[144px] w-[434px]">
-            <img
-              src="/logo-light.png"
-              alt="Remix"
-              className="block w-full dark:hidden"
-            />
-            <img
-              src="/logo-dark.png"
-              alt="Remix"
-              className="hidden w-full dark:block"
-            />
-          </div>
-        </header>
-        <nav className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-gray-200 p-6 dark:border-gray-700">
-          <p className="leading-6 text-gray-700 dark:text-gray-200">
-            What&apos;s next?
-          </p>
-          <ul>
-            {resources.map(({ href, text, icon }) => (
-              <li key={href}>
-                <a
-                  className="group flex items-center gap-3 self-stretch p-3 leading-normal text-blue-700 hover:underline dark:text-blue-500"
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {icon}
-                  {text}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+    <div className="flex flex-col items-center p-4 space-y-8 bg-[#f0e0d6] min-h-screen font-mono">
+      {/* Box 1: App Description */}
+      <div className="border border-gray-400 bg-white p-4 w-full max-w-2xl shadow-md">
+        <h1 className="text-xl font-bold underline mb-2">Welcome to TokenSpitter</h1>
+        <p>A retro tool for developers to spit out OAuth tokens fast. No more doc diving.</p>
       </div>
+
+      {/* Box 2: Service Links */}
+      <div className="border border-gray-400 bg-white p-4 w-full max-w-2xl shadow-md">
+        <h2 className="text-lg font-semibold underline mb-2">Choose your Service</h2>
+        <ul className="list-disc list-inside space-y-1">
+          <li><a href="/auth/google" className="text-blue-600 underline">Google</a></li>
+          <li><a href="/auth/salesforce" className="text-blue-600 underline">Salesforce</a></li>
+          <li><a href="/auth/facebook" className="text-blue-600 underline">Facebook</a></li>
+          <li><a href="/auth/jira" className="text-blue-600 underline">Jira</a></li>
+        </ul>
+      </div>
+
+      {/* Footer */}
+      <footer className="text-xs text-gray-600 mt-auto">
+        Built with caffeine, cursing, and OAuth errors.
+      </footer>
     </div>
   );
 }
