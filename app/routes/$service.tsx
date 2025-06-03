@@ -1,24 +1,48 @@
 import { useActionData, useLoaderData, useParams } from "@remix-run/react";
 import {ActionFunctionArgs, json, LoaderFunctionArgs} from "@remix-run/node"
 import { getAuthUrl, readYaml } from "~/utils/backend.server";
+import { Redis } from "@upstash/redis"
 
 import util from "util";
 import { request } from "http";
 export const loader = async({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url)
-  console.log(util.inspect(url));
+
+  const stateUuid = url.searchParams.get('state')
+  const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN
+  })
+
+  const tokenResponse = await redis.get(`token:${stateUuid}`)
   const oauthConfig = await readYaml(`/oauth${url.pathname}.yaml`)
-  console.log('oauthConfig:', oauthConfig)
+  oauthConfig.redirectUri = process.env.OAUTH_CALLBACK_URL
+
   return json({
-    oauthConfig
+    oauthConfig,
+    tokenResponse,
   })
 }
 
 export const action = async({ request }: ActionFunctionArgs) => {
     const formData = await request.formData()
-    console.log(util.inspect(formData))
-    const authUrl = await getAuthUrl({clientId: formData.get("clientId"), redirectUri: formData.get("redirectUri"), scopes: formData.get("scopes"), authUrl: formData.get("authUrl") })
-    return json({success: "true", clientId: formData.get("clientId"), clientSecret: formData.get("clientSecret"), authUrl, scope: formData.get("scopes")})
+
+    const authUrl = await getAuthUrl({
+      clientId: formData.get("clientId"),
+      clientSecret: formData.get("clientSecret"), 
+      redirectUri: formData.get("redirectUri"), 
+      scopes: formData.get("scopes"), 
+      authUrl: formData.get("authUrl"),
+      tokenUrl: formData.get("tokenUrl"), 
+      service: formData.get("service"),
+    })
+  
+    return json({
+      clientId: formData.get("clientId"), 
+      clientSecret: formData.get("clientSecret"), 
+      authUrl, 
+      scope: formData.get("scopes")
+    })
 }
 
 export default function OAuthPage() {
@@ -29,7 +53,7 @@ export default function OAuthPage() {
   return (
     <div className="bg-[#f0e0d6] min-h-screen font-mono p-4 flex flex-col items-center space-y-6">
       {/* Header */}
-      <h1 className="text-2xl underline font-bold">Setup for {service}</h1>
+      <h1 className="text-2xl underline font-bold">{service}</h1>
 
       {/* Redirect / Auth URLs */}
       <div className="border border-gray-400 bg-white p-4 w-full max-w-2xl shadow-md space-y-2">
@@ -54,11 +78,13 @@ export default function OAuthPage() {
           <div className="space-y-2">
             <label>Scopes</label>
             <select name="scopes" className="w-full p-1 border">
-              {Object.keys(data.oauthConfig.scopes).map((scope) => (<option value={data.oauthConfig.scopes[scope].value}>{scope}</option>))}
+              {Object.keys(data.oauthConfig.scopes).map((scope) => (<option key={scope} value={data.oauthConfig.scopes[scope]}>{scope}</option>))}
             </select>
           </div>
           <input type="hidden" name="authUrl" value={data.oauthConfig.authUrl} />
           <input type="hidden" name="redirectUri" value={data.oauthConfig.redirectUri} />
+          <input type="hidden" name="tokenUrl" value={data.oauthConfig.tokenUrl} />
+          <input type="hidden" name="service" value={service} />
           <button className="bg-[#d6d6d6] border border-gray-600 px-4 py-1 text-sm font-mono shadow hover:bg-[#c0c0c0]" type="submit">Get Auth URL</button>
         </div>
       </form>
@@ -73,13 +99,13 @@ export default function OAuthPage() {
 
         <div>
           <h2 className="underline font-semibold">Token Response:</h2>
-          <div className="bg-gray-100 p-2 text-xs break-all">[JSON from token POST]</div>
+          <div className="bg-gray-100 p-2 text-xs break-all">{JSON.stringify(data.tokenResponse, null, 2)}</div>
         </div>
       </div>
 
       {/* Footer */}
       <footer className="text-xs text-gray-600 mt-auto">
-        Real devs do it manually, but we automate.
+        Seems Faster to get Oauth tokens this way
       </footer>
     </div>
   );

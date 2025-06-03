@@ -23,7 +23,7 @@ export default function Index() {
           <li><a href="/google" className="text-blue-600 underline">Google</a></li>
           <li><a href="/salesforce" className="text-blue-600 underline">Salesforce</a></li>
           <li><a href="/facebook" className="text-blue-600 underline">Facebook</a></li>
-          <li><a href="/jira" className="text-blue-600 underline">Jira</a></li>
+          <li><a href="/jira-software-cloud" className="text-blue-600 underline">Jira</a></li>
         </ul>
       </div>
 
