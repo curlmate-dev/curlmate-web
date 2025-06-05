@@ -28,7 +28,7 @@ export async function loader({request}: LoaderFunctionArgs) {
             await redis.set(`token:${stateId}`, JSON.stringify(tokenResponse));
             return redirect(`/${session.service}?state=${stateId}`)
         } catch(error) {
-            return json({error})
+            throw Error(`Error in token response ${error}`)
         }
     } else {
         return json({error: "Auth Code missing"})

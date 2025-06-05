@@ -25,6 +25,8 @@ export default function Index() {
           <li><a href="/dropbox" className="text-blue-600 underline">Dropbox</a></li>
           <li><a href="/jira-software-cloud" className="text-blue-600 underline">Jira</a></li>
           <li><a href="/hubspot" className="text-blue-600 underline">Hubspot</a></li>
+          <li><a href="/asana" className="text-blue-600 underline">Asana</a></li>
+          <li><a href="/github" className="text-blue-600 underline">Github</a></li>
         </ul>
       </div>
 
