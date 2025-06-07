@@ -1,0 +1,4 @@
+  authUrl: "https://auth.monday.com/oauth2/authorize"
+  tokenUrl: "https://auth.monday.com/oauth2/token"
+  scopes:
+    "Read general information about the account": "account:read"

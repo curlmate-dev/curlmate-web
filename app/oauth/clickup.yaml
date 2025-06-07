@@ -1,0 +1,4 @@
+  authUrl: "https://app.clickup.com/api"
+  tokenUrl: "https://api.clickup.com/api/v2/oauth/token"
+  scopes:
+    "": ""
