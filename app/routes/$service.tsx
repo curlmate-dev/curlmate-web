@@ -9,18 +9,12 @@ export const loader = async({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url)
 
   const stateUuid = url.searchParams.get('state')
-  const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN
-  })
 
-  const tokenResponse = await redis.get(`token:${stateUuid}`)
   const oauthConfig = await readYaml(`/oauth${url.pathname}.yaml`)
   oauthConfig.redirectUri = process.env.OAUTH_CALLBACK_URL
 
   return json({
     oauthConfig,
-    tokenResponse,
   })
 }
 
@@ -95,11 +89,6 @@ export default function OAuthPage() {
         <div>
           <h2 className="underline font-semibold">Generated Auth URL:</h2>
           <div className="bg-gray-100 p-2 text-xs break-all">{actionData?.authUrl}</div>
-        </div>
-
-        <div>
-          <h2 className="underline font-semibold">Token Response:</h2>
-          <div className="bg-gray-100 p-2 text-xs break-all">{JSON.stringify(data.tokenResponse, null, 2)}</div>
         </div>
       </div>
 

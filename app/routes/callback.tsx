@@ -26,7 +26,7 @@ export async function loader({request}: LoaderFunctionArgs) {
             })
 
             await redis.set(`token:${stateId}`, JSON.stringify(tokenResponse));
-            return redirect(`/${session.service}?state=${stateId}`)
+            return redirect(`/apicurl?state=${stateId}`)
         } catch(error) {
             throw Error(`Error in token response ${error}`)
         }
