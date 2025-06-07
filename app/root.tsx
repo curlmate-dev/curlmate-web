@@ -38,6 +38,37 @@ export function Layout({ children }: { children: React.ReactNode }) {
             `,
           }}
         />
+        {/* Iubenda Cookie Solution Config */}
+        <script
+          type="text/javascript"
+          dangerouslySetInnerHTML={{
+            __html: `
+              var _iub = _iub || [];
+              _iub.csConfiguration = {
+                siteId: 4061272,
+                cookiePolicyId: 51964284,
+                lang: "en",
+                storage: { useSiteId: true }
+              };
+            `,
+          }}
+        />
+
+        {/* Iubenda Scripts */}
+        <script
+          type="text/javascript"
+          src="https://cs.iubenda.com/autoblocking/4061272.js"
+        />
+        <script
+          type="text/javascript"
+          src="//cdn.iubenda.com/cs/gpp/stub.js"
+        />
+        <script
+          type="text/javascript"
+          src="//cdn.iubenda.com/cs/iubenda_cs.js"
+          charSet="UTF-8"
+          async
+        />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
