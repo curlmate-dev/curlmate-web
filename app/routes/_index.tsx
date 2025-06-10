@@ -20,7 +20,7 @@ export default function Index() {
       <div className="border border-gray-400 bg-white p-4 w-full max-w-2xl shadow-md">
         <h2 className="text-lg font-semibold underline mb-2 text-blue-600">Choose your Service</h2>
         <ul className="list-disc list-inside space-y-1">
-          <li><a href="/google" className="text-blue-600 underline">Google</a></li>
+          <li><a href="/google-calendar" className="text-blue-600 underline">Google Calendar</a></li>
           <li><a href="/salesforce" className="text-blue-600 underline">Salesforce</a></li>
           <li><a href="/dropbox" className="text-blue-600 underline">Dropbox</a></li>
           <li><a href="/jira-software-cloud" className="text-blue-600 underline">Jira</a></li>
