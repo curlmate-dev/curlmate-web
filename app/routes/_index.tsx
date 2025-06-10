@@ -11,14 +11,14 @@ export default function Index() {
   return (
     <div className="flex flex-col items-center p-4 space-y-8 bg-[#f0e0d6] min-h-screen font-mono">
       {/* Box 1: App Description */}
-      <div className="border border-gray-400 bg-white p-4 w-full max-w-2xl shadow-md">
-        <h1 className="text-xl font-bold underline mb-2">Welcome to TokenSpitter</h1>
-        <p>A retro tool for developers to spit out OAuth tokens fast. No more doc diving.</p>
+      <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md">
+        <h1 className="underline">You have reached Curlmate</h1>
+        <p>A tool for developers to spit out OAuth tokens fast and run APIs. No more doc diving.</p>
       </div>
 
       {/* Box 2: Service Links */}
       <div className="border border-gray-400 bg-white p-4 w-full max-w-2xl shadow-md">
-        <h2 className="text-lg font-semibold underline mb-2">Choose your Service</h2>
+        <h2 className="text-lg font-semibold underline mb-2 text-blue-600">Choose your Service</h2>
         <ul className="list-disc list-inside space-y-1">
           <li><a href="/google" className="text-blue-600 underline">Google</a></li>
           <li><a href="/salesforce" className="text-blue-600 underline">Salesforce</a></li>

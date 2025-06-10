@@ -47,10 +47,10 @@ export default function OAuthPage() {
   return (
     <div className="bg-[#f0e0d6] min-h-screen font-mono p-4 flex flex-col items-center space-y-6">
       {/* Header */}
-      <h1 className="text-2xl underline font-bold">{service}</h1>
+      <h1 className="text-2xl underline font-bold text-gray-600">{service}</h1>
 
       {/* Redirect / Auth URLs */}
-      <div className="border border-gray-400 bg-white p-4 w-full max-w-2xl shadow-md space-y-2">
+      <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md space-y-2">
         <div><strong>Redirect URL:</strong> <code>{data.oauthConfig.redirectUri}</code></div>
         <div><strong>Auth URL:</strong> <code>{data.oauthConfig.authUrl}</code></div>
         <div><strong>Token URL:</strong> <code>{data.oauthConfig.tokenUrl}</code></div>
@@ -58,20 +58,20 @@ export default function OAuthPage() {
 
       {/* Input Box */}
       <form method="post">
-        <div className="border border-gray-400 bg-white p-4 w-full max-w-2xl shadow-md space-y-4">
+        <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md space-y-4">
           <div className="space-y-2">
             <label>Client ID</label>
-            <input name="clientId" defaultValue={actionData?.clientId ?? ""} className="w-full p-1 border" type="text" placeholder="Paste your Client ID" />
+            <input name="clientId" defaultValue={actionData?.clientId ?? ""} className="w-full p-1 border bg-white" type="text" placeholder="Paste your Client ID" />
           </div>
 
           <div className="space-y-2">
             <label>Client Secret</label>
-            <input name="clientSecret" defaultValue={actionData?.clientSecret ?? ""} className="w-full p-1 border" type="text" placeholder="Paste your Client Secret" />
+            <input name="clientSecret" defaultValue={actionData?.clientSecret ?? ""} className="w-full p-1 border bg-white" type="text" placeholder="Paste your Client Secret" />
           </div>
 
           <div className="space-y-2">
             <label>Scopes</label>
-            <select name="scopes" className="w-full p-1 border">
+            <select name="scopes" className="w-full p-1 border bg-white">
               {Object.keys(data.oauthConfig.scopes).map((scope) => (<option key={scope} value={data.oauthConfig.scopes[scope]}>{scope}</option>))}
             </select>
           </div>
@@ -85,10 +85,10 @@ export default function OAuthPage() {
 
 
       {/* Generated URLs */}
-      <div className="border border-gray-400 bg-white p-4 w-full max-w-2xl shadow-md space-y-4">
+      <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md space-y-4">
         <div>
           <h2 className="underline font-semibold">Generated Auth URL:</h2>
-          <div className="bg-gray-100 p-2 text-xs break-all">{actionData?.authUrl}</div>
+          <div className="bg-gray-100 text-blue-600 p-2 text-xs break-all">{actionData?.authUrl}</div>
         </div>
       </div>
 
