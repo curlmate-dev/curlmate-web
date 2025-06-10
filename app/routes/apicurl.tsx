@@ -59,7 +59,7 @@ export default function APICurlPage() {
       <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md space-y-4">
         <div>
           <h2 className="underline text-gray-600 font-semibold">Token Response:</h2>
-          <div className="bg-gray-100 p-2 text-xs break-all">{JSON.stringify(data.tokenResponse, null, 2)}</div>
+          <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">{JSON.stringify(data.tokenResponse, null, 2)}</div>
         </div>
       </div>
 
@@ -67,7 +67,7 @@ export default function APICurlPage() {
       <form method="post">
         <div className="border border-gray-400 bg-gray-100 p-4 w-full max-w-2xl shadow-md space-y-4">
           <div className="space-y-2">
-            <textarea name="curl" className="h-40 w-[600px] p-2 border font-mono resize rounded-sm" placeholder="Paste your Curl and edit" defaultValue={actionData?.curl ?? ""}/>
+            <textarea name="curl" className="bg-gray-100 text-gray-600 h-40 w-[600px] p-2 border font-mono resize rounded-sm" placeholder="Paste your Curl and edit" defaultValue={actionData?.curl ?? ""}/>
           </div>
           <button className="bg-[#d6d6d6] border border-gray-600 text-gray-600 px-4 py-1 text-sm font-mono shadow hover:bg-[#c0c0c0]" type="submit">Run Curl</button>
         </div>

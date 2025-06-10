@@ -88,7 +88,7 @@ export default function OAuthPage() {
       <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md space-y-4">
         <div>
           <h2 className="underline font-semibold">Generated Auth URL:</h2>
-          <div className="bg-gray-100 text-blue-600 p-2 text-xs break-all">{actionData?.authUrl}</div>
+          <div className="bg-gray-100 text-blue-600 p-2 text-xs break-all"><a href={actionData?.authUrl} target="_blank">{actionData?.authUrl}</a></div>
         </div>
       </div>
 
