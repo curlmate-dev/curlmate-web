@@ -13,7 +13,7 @@ export default function Index() {
       {/* Box 1: App Description */}
       <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md">
         <h1 className="underline">You have reached Curlmate</h1>
-        <p>A tool for developers to spit out OAuth tokens fast and run APIs. No more doc diving.</p>
+        <p>An Oauth2 orchestrator and Oauth2 token vending machine</p>
       </div>
 
       {/* Box 2: Service Links */}
