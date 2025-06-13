@@ -21,6 +21,7 @@ export default function Index() {
         <h2 className="text-lg font-semibold underline mb-2 text-blue-600">Choose your Service</h2>
         <ul className="list-disc list-inside space-y-1">
           <li><a href="/google-calendar" className="text-blue-600 underline">Google Calendar</a></li>
+          <li><a href="/google-drive" className="text-blue-600 underline">Google Drive</a></li>
           <li><a href="/salesforce" className="text-blue-600 underline">Salesforce</a></li>
           <li><a href="/dropbox" className="text-blue-600 underline">Dropbox</a></li>
           <li><a href="/jira-software-cloud" className="text-blue-600 underline">Jira</a></li>

@@ -1,0 +1,5 @@
+  authUrl: "https://accounts.google.com/o/oauth2/v2/auth"
+  tokenUrl: "https://oauth2.googleapis.com/token"
+  scopes:
+    "Full Access": "https://www.googleapis.com/auth/drive"
+  
