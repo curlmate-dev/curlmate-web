@@ -8,7 +8,7 @@ import { decrypt, encrypt } from "~/utils/backend.encryption";
 export async function loader({request}: LoaderFunctionArgs) {
     const cookieHeader = request.headers.get("Cookie");
     const userKey = await curlmateKeyCookie.parse(cookieHeader);
-    console.log("userKey: ", userKey)
+
     if (!userKey) {
         throw new Error("Missing encryption key");
     };
