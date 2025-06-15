@@ -5,8 +5,17 @@ import { Redis } from "@upstash/redis"
 import util from "util"
 import { exec } from "child_process";
 import { toJsonObject } from "curlconverter"
+import { curlmateKeyCookie } from "~/utils/backend.cookie";
+import { decrypt } from "~/utils/backend.encryption";
 
 export const loader = async({ request }: LoaderFunctionArgs) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const userKey = await curlmateKeyCookie.parse(cookieHeader);
+
+  if (!userKey) {
+    throw new Error("Missing encrytpion key")
+  };
+
   const url = new URL(request.url)
 
   const stateUuid = url.searchParams.get('state')
@@ -18,9 +27,12 @@ export const loader = async({ request }: LoaderFunctionArgs) => {
   const state = await redis.get(`state:${stateUuid}`)
   const tokenResponse = await redis.get(`token:${stateUuid}`)
 
+  const decryptedState = JSON.parse(decrypt(state, Buffer.from(userKey, "base64url")));
+  const decryptedTokenResponse = JSON.parse(decrypt(tokenResponse, Buffer.from(userKey, "base64url")));
+
   return json({
-    service: state.service,
-    tokenResponse,
+    service: decryptedState.service,
+    tokenResponse: decryptedTokenResponse,
   })
 }
 

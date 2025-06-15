@@ -5,7 +5,13 @@ import { Redis } from "@upstash/redis"
 
 import util from "util";
 import { request } from "http";
+import { curlmateKeyCookie } from "~/utils/backend.cookie";
 export const loader = async({ request }: LoaderFunctionArgs) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const userKey = await curlmateKeyCookie.parse(cookieHeader);
+
+  if (!userKey) { throw new Error("Missing encrypiton key")};
+
   const url = new URL(request.url)
 
   const stateUuid = url.searchParams.get('state')
@@ -19,6 +25,11 @@ export const loader = async({ request }: LoaderFunctionArgs) => {
 }
 
 export const action = async({ request }: ActionFunctionArgs) => {
+    const cookieHeader = request.headers.get("Cookie");
+    const userKey = await curlmateKeyCookie.parse(cookieHeader);
+
+    if (!userKey) { throw new Error("Missing encrypiton key")};
+
     const formData = await request.formData()
 
     const authUrl = await getAuthUrl({
@@ -29,7 +40,8 @@ export const action = async({ request }: ActionFunctionArgs) => {
       authUrl: formData.get("authUrl"),
       tokenUrl: formData.get("tokenUrl"), 
       service: formData.get("service"),
-    })
+      userKey,
+    });
   
     return json({
       clientId: formData.get("clientId"), 

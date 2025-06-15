@@ -4,6 +4,7 @@ import yaml from 'js-yaml'
 import { json } from "@remix-run/node"
 import { v4 as uuidv4 } from "uuid"
 import { Redis } from "@upstash/redis"
+import { encrypt } from "./backend.encryption"
 
 export async function readYaml(filePath: string) {
     const absoulutePath = path.join(...[process.cwd(), '/app', filePath])
@@ -20,6 +21,7 @@ export async function getAuthUrl(opts: {
     authUrl: string,
     tokenUrl: string,
     service: string,
+    userKey: string,
 }) {
     const params = new URLSearchParams({
         client_id: opts.clientId,
@@ -34,13 +36,17 @@ export async function getAuthUrl(opts: {
         token: process.env.UPSTASH_REDIS_REST_TOKEN
     })
 
-    await redis.set(`state:${params.get("state")}`, JSON.stringify({
+    const stateData = JSON.stringify({
         clientId: opts.clientId,
         clientSecret: opts.clientSecret,
         redirectUri: opts.redirectUri,
         tokenUrl: opts.tokenUrl,
         service: opts.service,
-    }))
+    });
+
+    const encryptedState = encrypt(stateData, Buffer.from(opts.userKey, "base64url"));
+
+    await redis.set(`state:${params.get("state")}`, encryptedState)
 
     return `${opts.authUrl}?${params.toString()}`
 }

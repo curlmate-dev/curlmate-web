@@ -1,4 +1,6 @@
-import type { MetaFunction } from "@remix-run/node";
+import { type MetaFunction, type LoaderFunctionArgs, json } from "@remix-run/node";
+import { curlmateKeyCookie } from "../utils/backend.cookie";
+import { randomBytes } from "crypto"
 
 export const meta: MetaFunction = () => {
   return [
@@ -6,6 +8,25 @@ export const meta: MetaFunction = () => {
     { name: "description", content: "Oauth2 tokens for services" },
   ];
 };
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const existingCookie = await curlmateKeyCookie.parse(cookieHeader);
+
+  if  (existingCookie) {
+    return json({}, {status: 200})
+  };
+
+  const userKey = randomBytes(32).toString("base64url");
+  const setCookie = await curlmateKeyCookie.serialize(userKey);
+
+  return json({}, {
+    status: 200,
+    headers: {
+      "Set-Cookie": setCookie,
+    },
+  });
+}
 
 export default function Index() {
   return (
