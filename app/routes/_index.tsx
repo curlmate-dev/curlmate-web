@@ -33,8 +33,11 @@ export default function Index() {
     <div className="flex flex-col items-center p-4 space-y-8 bg-[#f0e0d6] min-h-screen font-mono">
       {/* Box 1: App Description */}
       <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md">
-        <h1 className="underline">You have reached Curlmate</h1>
-        <p>An Oauth2 orchestrator and Oauth2 token vending machine</p>
+        <h1 className="underline">You have reached Curlmate[Encrypted]</h1>
+        <p>An Oauth2 orchestrator and Oauth2 token vending machine.</p>
+        <p>OAuth tokens stored encrypted. Decryption key lives only in your browser — via HTTP-only cookie.</p>
+        <p>Use tokens to call any API securely — Curlmate exposes MCP endpoints you can run via Claude or other LLMs. Your browser becomes a vending machine for tokens.
+</p>
       </div>
 
       {/* Box 2: Service Links */}
