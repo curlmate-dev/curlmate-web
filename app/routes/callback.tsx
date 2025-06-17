@@ -42,6 +42,6 @@ export async function loader({request}: LoaderFunctionArgs) {
             throw Error(`Error in token response ${error}`)
         }
     } else {
-        return json({error: "Auth Code missing"})
+        return Response.json({error: "Auth Code missing"})
     }
 }

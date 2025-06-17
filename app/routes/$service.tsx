@@ -19,7 +19,7 @@ export const loader = async({ request }: LoaderFunctionArgs) => {
   const oauthConfig = await readYaml(`/oauth${url.pathname}.yaml`)
   oauthConfig.redirectUri = process.env.OAUTH_CALLBACK_URL
 
-  return json({
+  return Response.json({
     oauthConfig,
   })
 }
@@ -43,7 +43,7 @@ export const action = async({ request }: ActionFunctionArgs) => {
       userKey,
     });
   
-    return json({
+    return Response.json({
       clientId: formData.get("clientId"), 
       clientSecret: formData.get("clientSecret"), 
       authUrl, 

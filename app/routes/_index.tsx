@@ -14,13 +14,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const existingCookie = await curlmateKeyCookie.parse(cookieHeader);
 
   if  (existingCookie) {
-    return json({}, {status: 200})
+    return Response.json({}, {status: 200})
   };
 
   const userKey = randomBytes(32).toString("base64url");
   const setCookie = await curlmateKeyCookie.serialize(userKey);
 
-  return json({}, {
+  return Response.json({}, {
     status: 200,
     headers: {
       "Set-Cookie": setCookie,
@@ -55,6 +55,7 @@ export default function Index() {
           <li><a href="/clickup" className="text-blue-600 underline">Clickup</a></li>
           <li><a href="/monday" className="text-blue-600 underline">Monday</a></li>
           <li><a href="/linear" className="text-blue-600 underline">Linear</a></li>
+          <li><a href="/google-docs" className="text-blue-600 underline">Google Docs</a></li>
         </ul>
       </div>
 

@@ -23,5 +23,13 @@ export default defineConfig({
   ],
   server: {
     allowedHosts: ['.ngrok-free.app'],
-  }
+  },
+    build: {
+    target: 'esnext'
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext'
+    }
+  },
 });

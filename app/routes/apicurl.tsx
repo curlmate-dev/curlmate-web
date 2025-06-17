@@ -1,9 +1,6 @@
-import { useActionData, useLoaderData, useParams } from "@remix-run/react";
+import { useActionData, useLoaderData } from "@remix-run/react";
 import {ActionFunctionArgs, json, LoaderFunctionArgs} from "@remix-run/node"
-import { getAuthUrl, readYaml } from "~/utils/backend.server";
 import { Redis } from "@upstash/redis"
-import util from "util"
-import { exec } from "child_process";
 import { toJsonObject } from "curlconverter"
 import { curlmateKeyCookie } from "~/utils/backend.cookie";
 import { decrypt } from "~/utils/backend.encryption";
@@ -30,7 +27,7 @@ export const loader = async({ request }: LoaderFunctionArgs) => {
   const decryptedState = JSON.parse(decrypt(state, Buffer.from(userKey, "base64url")));
   const decryptedTokenResponse = JSON.parse(decrypt(tokenResponse, Buffer.from(userKey, "base64url")));
 
-  return json({
+  return Response.json({
     service: decryptedState.service,
     tokenResponse: decryptedTokenResponse,
   })
@@ -40,7 +37,7 @@ export const action = async({ request }: ActionFunctionArgs) => {
     const formData = await request.formData()
     const curl = formData.get('curl')?.toString() || ""
 
-    if (!curl) { return json({curl: "", output: "No curl provided"})}
+    if (!curl) { return Response.json({curl: "", output: "No curl provided"})}
 
     try {
         const parsedCurl = toJsonObject(curl)
@@ -53,10 +50,10 @@ export const action = async({ request }: ActionFunctionArgs) => {
         })
 
         const responseBody = await response.text()
-        return json({curl, output: responseBody})
+        return Response.json({curl, output: responseBody})
 
     } catch (error: any) {
-        return json({curl, output: `Error: ${error.message}`})
+        return Response.json({curl, output: `Error: ${error.message}`})
     }
 }
 
