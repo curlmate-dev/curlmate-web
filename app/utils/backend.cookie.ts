@@ -6,7 +6,7 @@ const isProd = process.env.NODE_ENV === "production";
 export const curlmateKeyCookie = createCookie("Curlmate", {
      httpOnly: true,
      secure: isProd,
-     sameSite: "lax",
+     sameSite: "strict",
      path: "/",
      maxAge: 60 * 60 * 24
 })
