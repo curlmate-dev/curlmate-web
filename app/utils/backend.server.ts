@@ -31,6 +31,10 @@ export async function getAuthUrl(opts: {
         state: uuidv4(),
     })
 
+    if (opts.service === "notion") {
+        params.set("owner", "user");
+    }
+    
     const redis = new Redis({
         url: process.env.UPSTASH_REDIS_REST_URL,
         token: process.env.UPSTASH_REDIS_REST_TOKEN

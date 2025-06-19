@@ -56,6 +56,7 @@ export default function Index() {
           <li><a href="/monday" className="text-blue-600 underline">Monday</a></li>
           <li><a href="/linear" className="text-blue-600 underline">Linear</a></li>
           <li><a href="/google-docs" className="text-blue-600 underline">Google Docs</a></li>
+          <li><a href="/notion" className="text-blue-600 underline">Notion</a></li>
         </ul>
       </div>
 

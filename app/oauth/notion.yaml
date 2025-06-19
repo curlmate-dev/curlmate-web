@@ -1,0 +1,6 @@
+  authUrl: "https://api.notion.com/v1/oauth/authorize"
+  tokenUrl: "https://api.notion.com/v1/oauth/token"
+  scopes:
+    "": ""
+  additionalRequired:
+    "owner": "user"
