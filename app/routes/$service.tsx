@@ -17,7 +17,13 @@ export const loader = async({ request }: LoaderFunctionArgs) => {
   const stateUuid = url.searchParams.get('state')
 
   const oauthConfig = await readYaml(`/oauth${url.pathname}.yaml`)
-  oauthConfig.redirectUri = process.env.OAUTH_CALLBACK_URL
+  if (url.pathname === "/slack" && process.env.NODE_ENV === "development") {
+    oauthConfig.redirectUri = process.env.SLACK_OAUTH_CALLBACK_URL
+    
+  } else {
+    oauthConfig.redirectUri = process.env.OAUTH_CALLBACK_URL
+  }
+
 
   return Response.json({
     oauthConfig,
