@@ -57,6 +57,7 @@ export default function Index() {
           <li><a href="/linear" className="text-blue-600 underline">Linear</a></li>
           <li><a href="/google-docs" className="text-blue-600 underline">Google Docs</a></li>
           <li><a href="/notion" className="text-blue-600 underline">Notion</a></li>
+          <li><a href="/slack" className="text-blue-600 underline">Slack</a></li>
         </ul>
       </div>
 
