@@ -35,6 +35,8 @@ export async function loader({request}: LoaderFunctionArgs) {
                 tokenUrl: decrtyptedSession.tokenUrl,
                 redirectUri: decrtyptedSession.redirectUri
             })
+            const util = require('util');
+            console.log('tokenResponse:',util.inspect(tokenResponse))
             const encryptedTokenResponse = encrypt(JSON.stringify(tokenResponse), Buffer.from(userKey, "base64url"));
             await redis.set(`token:${stateId}`, encryptedTokenResponse);
             return redirect(`/apicurl?state=${stateId}`)
