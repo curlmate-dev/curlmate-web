@@ -1,7 +1,6 @@
 import * as path from "path"
 import fs from "fs"
 import yaml from 'js-yaml'
-import { json } from "@remix-run/node"
 import { v4 as uuidv4 } from "uuid"
 import { Redis } from "@upstash/redis"
 import { encrypt } from "./backend.encryption"
@@ -13,46 +12,46 @@ export async function readYaml(filePath: string) {
     return config;
 }
 
-export async function getAuthUrl(opts: {
+export async function saveInRedis(opts: {
+    key: string;
+    value: string | object;
+    service: string;
+}) {
+    const { key, value, service} = opts;
+    console.log(opts)
+    const encryptionKey = process.env[`ENCRYPTION_KEY_${service.toUpperCase().replace(/-/g, "_")}`];
+    console.log(encryptionKey)
+    const redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN
+    });
+
+    const stringifiedValue =  typeof value === "object" ? JSON.stringify(value) : value;
+    const encryptedValue = encrypt(stringifiedValue, Buffer.from(encryptionKey, "base64url"));
+
+    await redis.set(key, encryptedValue)
+}
+
+export function getAuthUrl(opts: {
     clientId: string, 
     clientSecret: string, 
-    redirectUri: string, 
-    scopes: string, 
-    authUrl: string,
-    tokenUrl: string,
-    service: string,
-    userKey: string,
+    redirectUri: string,
+    authUrl: string; 
+    scopes: string,
+    appUuid: string;
+    service: string; 
 }) {
     const params = new URLSearchParams({
         client_id: opts.clientId,
         response_type: "code",
         redirect_uri: opts.redirectUri,
         scope: opts.scopes,
-        state: uuidv4(),
-    })
-
-    if (opts.service === "notion") {
-        params.set("owner", "user");
-    }
-    
-    const redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN
-    })
-
-    const stateData = JSON.stringify({
-        clientId: opts.clientId,
-        clientSecret: opts.clientSecret,
-        redirectUri: opts.redirectUri,
-        tokenUrl: opts.tokenUrl,
-        service: opts.service,
+        state: `${opts.appUuid}:${opts.service}`,
     });
 
-    const encryptedState = encrypt(stateData, Buffer.from(opts.userKey, "base64url"));
+    const authUrl = `${opts.authUrl}?${params.toString()}`;
 
-    await redis.set(`state:${params.get("state")}`, encryptedState)
-
-    return `${opts.authUrl}?${params.toString()}`
+    return authUrl
 }
 
 export async function exchangeAuthCodeForToken(opts: {
@@ -88,4 +87,53 @@ export async function exchangeAuthCodeForToken(opts: {
     }
 
     return await response.json();
+}
+
+export async function configureApp(opts: {
+    clientId: string;
+    clientSecret: string;
+    redirectUri: string;
+    scopes: string;
+    authUrl: string;
+    tokenUrl: string;
+    service: string;
+}) {
+    const {   
+        clientId,
+        clientSecret,
+        redirectUri,
+        scopes,
+        authUrl,
+        tokenUrl,
+        service,
+    } = opts;
+
+    const appUuid = uuidv4();
+
+    const appAuthUrl = getAuthUrl({
+        clientId,
+        clientSecret,
+        redirectUri,
+        authUrl,
+        scopes,
+        appUuid,
+        service,
+    });
+    console.log('appAuthUrl:', appAuthUrl)
+    const key = `app:${appUuid}`;
+
+    const value = {
+        clientId,
+        clientSecret,
+        redirectUri,
+        scopes,
+        appAuthUrl,
+        tokenUrl,
+        service,
+        tokens: []
+    };
+
+    await saveInRedis({key, value, service});
+
+    return appUuid;
 }

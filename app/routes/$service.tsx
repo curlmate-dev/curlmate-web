@@ -1,22 +1,14 @@
 import { useActionData, useLoaderData, useParams } from "@remix-run/react";
-import {ActionFunctionArgs, json, LoaderFunctionArgs} from "@remix-run/node"
-import { getAuthUrl, readYaml } from "~/utils/backend.server";
-import { Redis } from "@upstash/redis"
+import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node"
+import { configureApp, readYaml } from "~/utils/backend.server";
 
-import util from "util";
-import { request } from "http";
-import { curlmateKeyCookie } from "~/utils/backend.cookie";
 export const loader = async({ request }: LoaderFunctionArgs) => {
-  const cookieHeader = request.headers.get("Cookie");
-  const userKey = await curlmateKeyCookie.parse(cookieHeader);
+  const url = new URL(request.url);
 
-  if (!userKey) { throw new Error("Missing encrypiton key")};
+  const stateUuid = url.searchParams.get('state');
 
-  const url = new URL(request.url)
+  const oauthConfig = await readYaml(`/oauth${url.pathname}.yaml`);
 
-  const stateUuid = url.searchParams.get('state')
-
-  const oauthConfig = await readYaml(`/oauth${url.pathname}.yaml`)
   if (url.pathname === "/slack" && process.env.NODE_ENV === "development") {
     oauthConfig.redirectUri = process.env.SLACK_OAUTH_CALLBACK_URL
     
@@ -24,37 +16,27 @@ export const loader = async({ request }: LoaderFunctionArgs) => {
     oauthConfig.redirectUri = process.env.OAUTH_CALLBACK_URL
   }
 
-
   return Response.json({
     oauthConfig,
-  })
+  });
 }
 
 export const action = async({ request }: ActionFunctionArgs) => {
-    const cookieHeader = request.headers.get("Cookie");
-    const userKey = await curlmateKeyCookie.parse(cookieHeader);
-
-    if (!userKey) { throw new Error("Missing encrypiton key")};
-
     const formData = await request.formData()
 
-    const authUrl = await getAuthUrl({
+    const service = formData.get("service");
+  
+    const appUuid = await configureApp({
       clientId: formData.get("clientId"),
       clientSecret: formData.get("clientSecret"), 
       redirectUri: formData.get("redirectUri"), 
       scopes: formData.get("scopes"), 
       authUrl: formData.get("authUrl"),
-      tokenUrl: formData.get("tokenUrl"), 
-      service: formData.get("service"),
-      userKey,
+      tokenUrl: formData.get("tokenUrl"),
+      service 
     });
-  
-    return Response.json({
-      clientId: formData.get("clientId"), 
-      clientSecret: formData.get("clientSecret"), 
-      authUrl, 
-      scope: formData.get("scopes")
-    })
+    
+    return redirect(`/oauth-app/${service}/${appUuid}`);
 }
 
 export default function OAuthPage() {
@@ -97,19 +79,9 @@ export default function OAuthPage() {
           <input type="hidden" name="redirectUri" value={data.oauthConfig.redirectUri} />
           <input type="hidden" name="tokenUrl" value={data.oauthConfig.tokenUrl} />
           <input type="hidden" name="service" value={service} />
-          <button className="bg-[#d6d6d6] border border-gray-600 px-4 py-1 text-sm font-mono shadow hover:bg-[#c0c0c0]" type="submit">Get Auth URL</button>
+          <button className="bg-[#d6d6d6] border border-gray-600 px-4 py-1 text-sm font-mono shadow hover:bg-[#c0c0c0]" type="submit">Configure OAuth APP</button>
         </div>
       </form>
-
-
-      {/* Generated URLs */}
-      <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md space-y-4">
-        <div>
-          <h2 className="underline font-semibold">Generated Auth URL:</h2>
-          <div className="bg-gray-100 text-blue-600 p-2 text-xs break-all"><a href={actionData?.authUrl} target="_blank">{actionData?.authUrl}</a></div>
-        </div>
-      </div>
-
       {/* Footer */}
       <footer className="text-xs text-gray-600 mt-auto">
         Seems Faster to get Oauth tokens this way
