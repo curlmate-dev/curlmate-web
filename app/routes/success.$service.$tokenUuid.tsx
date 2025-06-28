@@ -1,36 +1,32 @@
 import { useActionData, useLoaderData } from "@remix-run/react";
-import {ActionFunctionArgs, json, LoaderFunctionArgs} from "@remix-run/node"
+import {ActionFunctionArgs, json, LoaderFunctionArgs, redirect} from "@remix-run/node"
 import { Redis } from "@upstash/redis"
 import { toJsonObject } from "curlconverter"
 import { curlmateKeyCookie } from "~/utils/backend.cookie";
 import { decrypt } from "~/utils/backend.encryption";
 
-export const loader = async({ request }: LoaderFunctionArgs) => {
-  const cookieHeader = request.headers.get("Cookie");
-  const userKey = await curlmateKeyCookie.parse(cookieHeader);
+export const loader = async({ request, params }: LoaderFunctionArgs) => {
+  const { service, tokenUuid } = params;
 
-  if (!userKey) {
-    throw new Error("Missing encrytpion key")
-  };
-
+  if (!service || !tokenUuid) {
+      throw redirect('/404')
+  }
   const url = new URL(request.url)
 
-  const stateUuid = url.searchParams.get('state')
+  const encryptionKey = process.env[`ENCRYPTION_KEY_${service.toUpperCase().replace(/-/g, "_")}`];
+
   const redis = new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL,
     token: process.env.UPSTASH_REDIS_REST_TOKEN
   })
 
-  const state = await redis.get(`state:${stateUuid}`)
-  const tokenResponse = await redis.get(`token:${stateUuid}`)
+  const token = await redis.get(`token:${tokenUuid}`);
 
-  const decryptedState = JSON.parse(decrypt(state, Buffer.from(userKey, "base64url")));
-  const decryptedTokenResponse = JSON.parse(decrypt(tokenResponse, Buffer.from(userKey, "base64url")));
+  const decryptedTokenResponse = JSON.parse(decrypt(token, Buffer.from(encryptionKey, "base64url")));
 
   return Response.json({
-    service: decryptedState.service,
     tokenResponse: decryptedTokenResponse,
-  })
+  });
 }
 
 export const action = async({ request }: ActionFunctionArgs) => {
@@ -64,7 +60,6 @@ export default function APICurlPage() {
   return (
     <div className="bg-[#f0e0d6] min-h-screen font-mono p-4 flex flex-col items-center space-y-6">
       {/* Header */}
-      <h1 className="text-2xl text-gray-600 underline font-bold">{data.service}</h1>
       <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md space-y-4">
         <div>
           <h2 className="underline text-gray-600 font-semibold">Token Response:</h2>
@@ -86,7 +81,6 @@ export default function APICurlPage() {
         <div>
           <h2 className="underline text-gray-600 font-semibold">Curl Response:</h2>
           <div className="bg-gray-100 text-blue-600 p-2 text-xs break-all"><pre className="whitespace-pre-wrap bg-gray-100 p-2 border">{actionData?.output}</pre></div>
-
         </div>
       </div>
 

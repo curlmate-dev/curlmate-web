@@ -34,10 +34,9 @@ export default function Index() {
       {/* Box 1: App Description */}
       <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md">
         <h1 className="underline">You have reached Curlmate[Encrypted]</h1>
-        <p>An Oauth2 orchestrator and Oauth2 token vending machine.</p>
-        <p>OAuth tokens stored encrypted. Decryption key lives only in your browser — via HTTP-only cookie.</p>
-        <p>Use tokens to call any API securely — Curlmate exposes MCP endpoints you can run via Claude or other LLMs. Your browser becomes a vending machine for tokens.
-</p>
+        <p>An Oauth2 orchestrator and Oauth2 token bank</p>
+        <p>OAuth tokens stored encrypted</p>
+        <p></p>
       </div>
 
       {/* Box 2: Service Links */}
@@ -58,6 +57,7 @@ export default function Index() {
           <li><a href="/google-docs" className="text-blue-600 underline">Google Docs</a></li>
           <li><a href="/notion" className="text-blue-600 underline">Notion</a></li>
           <li><a href="/slack" className="text-blue-600 underline">Slack</a></li>
+          <li><a href="/instagram" className="text-blue-600 underline">Instagram</a></li>
         </ul>
       </div>
 
