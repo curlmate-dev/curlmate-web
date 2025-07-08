@@ -9,7 +9,7 @@ export const loader =  async ({ request } : LoaderFunctionArgs) => {
         "state": crypto.randomUUID().toString(),
     });
 
-    const authUrl = `${process.env.GITHUB_LOGIN_AUTH_URL}?${params.toString()}`
+    const authUrl = `https://github.com/login/oauth/authorize?${params.toString()}`
 
     return redirect(authUrl);
 }
