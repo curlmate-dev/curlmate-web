@@ -7,4 +7,18 @@ export const curlmateKeyCookie = createCookie("Curlmate", {
      sameSite: "lax",
      path: "/",
      maxAge: 60 * 60 * 24
-})
+});
+
+export const sessionStorage = createCookieSessionStorage({
+     cookie: {
+          name: "__session",
+          secrets: [process.env.SESSION_SECRET!],
+          sameSite: "lax",
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60 * 24 * 7,
+     },
+});
+
+export const { getSession, commitSession, destroySession  } = sessionStorage;

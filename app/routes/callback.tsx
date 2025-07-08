@@ -17,7 +17,7 @@ export async function loader({request}: LoaderFunctionArgs) {
         token: process.env.UPSTASH_REDIS_REST_TOKEN
     });
 
-    const appData = await redis.get(`app:${appUuid}`);
+    const appData = await redis.get(`app:${appUuid}:${service}`);
 
     const decrtyptedAppData = JSON.parse(decrypt(appData, Buffer.from(encryptionKey, "base64url")));
 
@@ -36,7 +36,7 @@ export async function loader({request}: LoaderFunctionArgs) {
             await redis.set(`token:${tokenUuid}`, encryptedTokenResponse);
             decrtyptedAppData.tokens.push(`token:${tokenUuid}`);
             const reencryptedAppData = encrypt(JSON.stringify(decrtyptedAppData), Buffer.from(encryptionKey, "base64url"));
-            await redis.set(`app:${appUuid}`, reencryptedAppData);
+            await redis.set(`app:${appUuid}:${service}`, reencryptedAppData);
 
             return redirect(`/success/${service}/${tokenUuid}`);
         } catch(error) {

@@ -1,45 +1,24 @@
-import {  LoaderFunctionArgs, ActionFunctionArgs, redirect, MetaFunction } from "@remix-run/node";
-import { curlmateKeyCookie } from "../utils/backend.cookie";
-import { randomBytes } from "crypto"
-
-export const meta: MetaFunction = () => {
-  return [
-    { title: "curlmate" },
-    { name: "description", content: "Oauth2 tokens for services" },
-  ];
-};
+import { LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { requireOrg } from "~/utils/backend.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const cookieHeader = request.headers.get("Cookie");
-  const existingCookie = await curlmateKeyCookie.parse(cookieHeader);
-
-  if  (existingCookie) {
-    return Response.json({}, {status: 200})
-  };
-
-  const userKey = randomBytes(32).toString("base64url");
-  const setCookie = await curlmateKeyCookie.serialize(userKey);
-
-  return Response.json({}, {
-    status: 200,
-    headers: {
-      "Set-Cookie": setCookie,
-    },
-  });
+    const orgKey = await requireOrg(request);    
+    return Response.json({})
 }
 
-export default function Index() {
+export const action = async({}) => {
+  return redirect("/logout");
+}
+
+export default function Services() {
   return (
-    <div className="flex flex-col items-center p-4 space-y-8 bg-[#f0e0d6] min-h-screen font-mono">
+    <div className="bg-[#f5f5dc] flex flex-col items-center p-4 space-y-8 min-h-screen">
       <header className="absolute top-0 right-0 px-3 py-1">
-        <a href="/login" className="bg-gray-300 px-4 py-2 rounded inline-block text-[#222]">Login with GitHub</a>
+        <form method="post"><button className="text-[#222] bg-gray-300 hover:bg-gray-400 text-sm px-3 py-1 rounded" type="submit">Logout</button></form>
       </header>
       {/* Box 1: App Description */}
       <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md">
-        <h1 className="underline">You have reached Curlmate[Encrypted]</h1>
-        <p>An Oauth2 orchestrator and Oauth2 token bank</p>
-        <p>OAuth tokens stored encrypted</p>
-        <p>Use your oauth token to run API requests with Curlmate as a proxy server</p>
+        <h1 className="underline">Available Oauth Services</h1>
       </div>
 
       {/* Box 2: Service Links */}
@@ -71,4 +50,3 @@ export default function Index() {
     </div>
   );
 }
-

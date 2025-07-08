@@ -4,6 +4,14 @@ import yaml from 'js-yaml'
 import { v4 as uuidv4 } from "uuid"
 import { Redis } from "@upstash/redis"
 import { encrypt } from "./backend.encryption"
+import { decrypt } from "./backend.encryption"
+import { getSession } from "./backend.cookie"
+import { redirect } from "@remix-run/node"
+
+const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN
+});
 
 export async function readYaml(filePath: string) {
     const absoulutePath = path.join(...[process.cwd(), '/app', filePath])
@@ -12,15 +20,29 @@ export async function readYaml(filePath: string) {
     return config;
 }
 
+export async function getFromRedis(opts: { key: string; service: string }) {
+    const { key , service } = opts;
+    const encryptionKey = process.env[`ENCRYPTION_KEY_${service.toUpperCase().replace(/-/g, "_")}`];
+
+    const redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+
+    const value = await redis.get(key);
+    console.log(value);
+    const decryptedValue = JSON.parse(decrypt(value, Buffer.from(encryptionKey, "base64url")));
+
+    return decryptedValue;
+};
+
 export async function saveInRedis(opts: {
     key: string;
     value: string | object;
     service: string;
 }) {
     const { key, value, service} = opts;
-    console.log(opts)
     const encryptionKey = process.env[`ENCRYPTION_KEY_${service.toUpperCase().replace(/-/g, "_")}`];
-    console.log(encryptionKey)
     const redis = new Redis({
         url: process.env.UPSTASH_REDIS_REST_URL,
         token: process.env.UPSTASH_REDIS_REST_TOKEN
@@ -30,6 +52,29 @@ export async function saveInRedis(opts: {
     const encryptedValue = encrypt(stringifiedValue, Buffer.from(encryptionKey, "base64url"));
 
     await redis.set(key, encryptedValue)
+}
+
+export async function saveOrgInRedis(user: object) {
+    console.log(user);
+    if ("login" in user) {
+        const redisKey = `org:${user.login}`;
+        const existing = await redis.get(redisKey);
+        if (!existing) {
+            await redis.set(redisKey, JSON.stringify({
+                id: user.id,
+                login: user.login,
+                avatar: user.avatar_url,
+                email: user.email,
+                apps: []                
+            }))
+        }
+        return redisKey;
+    } else {
+        return {
+            "error": "Email not received from Github"
+        }
+    }
+
 }
 
 export function getAuthUrl(opts: {
@@ -97,6 +142,8 @@ export async function configureApp(opts: {
     authUrl: string;
     tokenUrl: string;
     service: string;
+    origin: string;
+    orgKey: string | undefined;
 }) {
     const {   
         clientId,
@@ -106,6 +153,8 @@ export async function configureApp(opts: {
         authUrl,
         tokenUrl,
         service,
+        origin,
+        orgKey
     } = opts;
 
     const appUuid = uuidv4();
@@ -119,8 +168,14 @@ export async function configureApp(opts: {
         appUuid,
         service,
     });
-    console.log('appAuthUrl:', appAuthUrl)
-    const key = `app:${appUuid}`;
+
+    const key = `app:${appUuid}:${service}`;
+
+    if (orgKey) {
+        const org = await redis.get(orgKey);
+        org.apps.push(key);
+        await redis.set(orgKey, org);
+    }
 
     const value = {
         clientId,
@@ -130,10 +185,26 @@ export async function configureApp(opts: {
         appAuthUrl,
         tokenUrl,
         service,
-        tokens: []
+        tokens: [],
+        custAuthUrl: `${origin}/oauth/${service}/${appUuid}`
     };
 
     await saveInRedis({key, value, service});
 
     return appUuid;
+}
+
+export async function requireOrg(request: Request): Promise<string> {
+    const session = await getSession(request.headers.get("Cookie") || "");
+    const orgKey = session.get("orgKey");
+    if (!orgKey) {
+        throw redirect("/login")
+    }
+    return orgKey;
+}
+
+export async function getAppsForOrg(orgKey: string): Promise<string[]> {
+    const org = await redis.get(orgKey);
+    const apps = org.apps;
+    return apps;
 }
