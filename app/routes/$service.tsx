@@ -1,11 +1,11 @@
 import { useActionData, useLoaderData, useParams } from "@remix-run/react";
 import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node"
 import { configureApp, readYaml } from "~/utils/backend.server";
+import { getSession } from "~/utils/backend.cookie";
 
 export const loader = async({ request }: LoaderFunctionArgs) => {
-  const url = new URL(request.url);
 
-  const stateUuid = url.searchParams.get('state');
+  const url = new URL(request.url);
 
   const oauthConfig = await readYaml(`/oauth${url.pathname}.yaml`);
 
@@ -22,9 +22,14 @@ export const loader = async({ request }: LoaderFunctionArgs) => {
 }
 
 export const action = async({ request }: ActionFunctionArgs) => {
+    const session = await getSession(request.headers.get("Cookie") || "");
+    const orgKey = session.get("orgKey");
+
     const formData = await request.formData()
+    const url = new URL(request.url);
 
     const service = formData.get("service");
+    const origin = url.origin;
   
     const appUuid = await configureApp({
       clientId: formData.get("clientId"),
@@ -33,7 +38,9 @@ export const action = async({ request }: ActionFunctionArgs) => {
       scopes: formData.get("scopes"), 
       authUrl: formData.get("authUrl"),
       tokenUrl: formData.get("tokenUrl"),
-      service 
+      service,
+      origin,
+      orgKey 
     });
     
     return redirect(`/oauth-app/${service}/${appUuid}`);
