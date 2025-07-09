@@ -39,7 +39,7 @@ export default function Index() {
         <h1 className="underline">You have reached Curlmate[Encrypted]</h1>
         <p>An Oauth2 orchestrator and Oauth2 token bank</p>
         <p>OAuth tokens stored encrypted</p>
-        <p>Use your oauth token to run API requests with Curlmate as a proxy server</p>
+        <p>Use your oauth token to run API requests with Curlmate as a proxy server <a className="underline text-blue-600" href="/how-it-works.html">how it works</a></p>
       </div>
 
       {/* Box 2: Service Links */}
@@ -66,7 +66,7 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="text-xs text-gray-600 mt-auto">
-        Built with caffeine, cursing, and OAuth errors.
+
       </footer>
     </div>
   );
