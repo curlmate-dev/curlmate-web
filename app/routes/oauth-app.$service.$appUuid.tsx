@@ -1,10 +1,16 @@
 import { useLoaderData } from "@remix-run/react"
-import { curlmateKeyCookie } from "~/utils/backend.cookie";
+import { curlmateKeyCookie, getSession } from "~/utils/backend.cookie";
 import { Redis } from "@upstash/redis";
 import { decrypt } from "~/utils/backend.encryption";
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { getOrg } from "~/utils/backend.server";
 
-export const loader = async({ params }: LoaderFunctionArgs) => {
+export const loader = async({ request, params }: LoaderFunctionArgs) => {
+    const session = await getSession(request.headers.get("Cookie") || "");
+    const orgKey = session.get("orgKey");
+
+    const org = orgKey ? await getOrg(orgKey) : undefined;
+
     const {service, appUuid } = params;
 
     if (!service || !appUuid) {
@@ -29,41 +35,74 @@ export const loader = async({ params }: LoaderFunctionArgs) => {
     const tokens = await Promise.all(tokenPromises);
 
     return Response.json({
+        org,
         app: decryptedApp,
         tokens,
     })
 }
 
 export default function OauthAppPage() {
-    const loaderData = useLoaderData<typeof loader>();
+    const {org, app, tokens} = useLoaderData<typeof loader>();
 
     return (
-        <div className="bg-[#f5f5dc] text-[#222] font-mono min-h-screen">
-            <div className="max-w-3xl mx-auto py-10">
-                <div className="bg-white border border-gray-400 rounded p-4 mb-6">
-                    <h2 className="underline text-lg font-bold mb-2">OAuth App:</h2>
-                    <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">{JSON.stringify(loaderData.app, null, 2)}</div>
+        <div className="bg-[#f5f5dc] text-[#222] font-mono min-h-screen flex flex-col items-center">
+            <header className="absolute top-0 right-0 px-3 py-1">
+                {org ? (
+                <div className="flex items-center gap-2">
+                    <img 
+                    src={org.avatar}
+                    alt="avatar"
+                    className="w-8 h-8 rounded-full border border-gray-400 "
+                    ></img>
+                    <a href="/logout" className="bg-gray-300 px-4 py-2 rounded inline-block text-[#222]">Logout</a>
                 </div>
-                {/* Generated URLs */}
-                <div className="border border-gray-400 bg-white text-gray-600 rounded p-4 mb-6">
-                    <div>
-                        <h2 className="underline font-semibold">Generated Customer Auth URL:</h2>
-                        <div className="bg-gray-100 text-blue-600 p-2 text-xs break-all">
-                            <a href={loaderData.app.custAuthUrl} target="_blank">{loaderData.app.custAuthUrl}</a>
+                ) : (<a href="/login" className="bg-gray-300 px-4 py-2 rounded inline-block text-[#222]">Login with GitHub</a>)}
+            </header>
+            <main className="flex-grow space-y-8">
+                <div className="max-w-3xl mx-auto py-10">
+                    <div className="bg-white border border-gray-400 rounded p-4 mb-6">
+                        <h2 className="underline text-lg font-bold mb-2">OAuth App:</h2>
+                        <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">{JSON.stringify(app, null, 2)}</div>
+                    </div>
+                    {/* Generated URLs */}
+                    <div className="border border-gray-400 bg-white text-gray-600 rounded p-4 mb-6">
+                        <div>
+                            <h2 className="underline font-semibold">Generated Customer Auth URL:</h2>
+                            <div className="bg-gray-100 text-blue-600 p-2 text-xs break-all">
+                                <a href={app.custAuthUrl} target="_blank">{app.custAuthUrl}</a>
+                            </div>
                         </div>
                     </div>
+                    <div>
+                        {tokens.map(token => (
+                            <div className="bg-white border border-gray-300 rounded p-4 mb-4">
+                                <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">{JSON.stringify(token, null, 2)}</div>
+                                <form method="post" action={`/refresh-token/${token.uuid}`}>
+                                    <button className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded mt-2">Refresh Token</button>
+                                </form>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="text-xs text-gray-600 mt-auto">
+                <div className="flex items-center space-x-4">
+                <div>
+                    <a className="underline" href="/tos.html">Terms Of Service</a>
                 </div>
                 <div>
-                    {loaderData.tokens.map(token => (
-                        <div className="bg-white border border-gray-300 rounded p-4 mb-4">
-                            <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">{JSON.stringify(token, null, 2)}</div>
-                            <form method="post" action={`/refresh-token/${token.uuid}`}>
-                                <button className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded mt-2">Refresh Token</button>
-                            </form>
-                        </div>
-                    ))}
+                    <a className="underline" href="/privacy.html">Privacy Policy</a>
                 </div>
-            </div>
+                </div>
+                <div className="mt-2 text-center">
+                &copy; 2025 Curlmate. All rights reserved.
+                </div>
+                <div className="mt-2 text-center">
+                Contact: <a href="mailto:admin@curlmate.dev">admin@curlmate.dev</a>
+                </div>
+            </footer>
         </div>
     )
 }

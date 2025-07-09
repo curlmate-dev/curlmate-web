@@ -30,7 +30,7 @@ export async function getFromRedis(opts: { key: string; service: string }) {
     });
 
     const value = await redis.get(key);
-    console.log(value);
+
     const decryptedValue = JSON.parse(decrypt(value, Buffer.from(encryptionKey, "base64url")));
 
     return decryptedValue;
@@ -55,7 +55,6 @@ export async function saveInRedis(opts: {
 }
 
 export async function saveOrgInRedis(user: object) {
-    console.log(user);
     if ("login" in user) {
         const redisKey = `org:${user.login}`;
         const existing = await redis.get(redisKey);
@@ -198,7 +197,7 @@ export async function requireOrg(request: Request): Promise<string> {
     const session = await getSession(request.headers.get("Cookie") || "");
     const orgKey = session.get("orgKey");
     if (!orgKey) {
-        throw redirect("/login")
+        throw redirect("/")
     }
     return orgKey;
 }
@@ -207,4 +206,9 @@ export async function getAppsForOrg(orgKey: string): Promise<string[]> {
     const org = await redis.get(orgKey);
     const apps = org.apps;
     return apps;
+}
+
+export async function getOrg(orgKey: string) {
+    const org = await redis.get(orgKey);
+    return org;
 }
