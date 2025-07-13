@@ -1,9 +1,7 @@
 import { useActionData, useLoaderData } from "@remix-run/react";
 import {ActionFunctionArgs, json, LoaderFunctionArgs, redirect} from "@remix-run/node"
-import { Redis } from "@upstash/redis"
 import { toJsonObject } from "curlconverter"
-import { curlmateKeyCookie } from "~/utils/backend.cookie";
-import { decrypt } from "~/utils/backend.encryption";
+import { getFromRedis } from "~/utils/backend.redis";
 
 export const loader = async({ request, params }: LoaderFunctionArgs) => {
   const { service, tokenUuid } = params;
@@ -11,18 +9,8 @@ export const loader = async({ request, params }: LoaderFunctionArgs) => {
   if (!service || !tokenUuid) {
       throw redirect('/404')
   }
-  const url = new URL(request.url)
 
-  const encryptionKey = process.env[`ENCRYPTION_KEY_${service.toUpperCase().replace(/-/g, "_")}`];
-
-  const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN
-  })
-
-  const token = await redis.get(`token:${tokenUuid}`);
-
-  const decryptedTokenResponse = JSON.parse(decrypt(token, Buffer.from(encryptionKey, "base64url")));
+  const decryptedTokenResponse = await getFromRedis({key:`token:${tokenUuid}`, service})
 
   return Response.json({
     tokenResponse: decryptedTokenResponse,

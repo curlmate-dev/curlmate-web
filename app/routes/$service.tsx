@@ -1,7 +1,8 @@
 import { useActionData, useLoaderData, useParams } from "@remix-run/react";
 import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node"
-import { configureApp, getOrg, readYaml } from "~/utils/backend.server";
+import { configureApp, readYaml } from "~/utils/backend.server";
 import { getSession } from "~/utils/backend.cookie";
+import { getOrg } from "~/utils/backend.redis";
 
 export const loader = async({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie") || "");

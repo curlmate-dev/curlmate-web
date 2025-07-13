@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { getOrg, requireOrg } from "~/utils/backend.server";
+import { requireOrg } from "~/utils/backend.server";
+import { getOrg } from "~/utils/backend.redis";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
     const orgKey = await requireOrg(request);

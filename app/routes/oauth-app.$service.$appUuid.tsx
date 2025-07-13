@@ -1,9 +1,7 @@
 import { useLoaderData } from "@remix-run/react"
-import { curlmateKeyCookie, getSession } from "~/utils/backend.cookie";
-import { Redis } from "@upstash/redis";
-import { decrypt } from "~/utils/backend.encryption";
+import { getSession } from "~/utils/backend.cookie";
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { getOrg } from "~/utils/backend.server";
+import { getApp, getFromRedis, getOrg } from "~/utils/backend.redis";
 
 export const loader = async({ request, params }: LoaderFunctionArgs) => {
     const session = await getSession(request.headers.get("Cookie") || "");
@@ -16,33 +14,32 @@ export const loader = async({ request, params }: LoaderFunctionArgs) => {
     if (!service || !appUuid) {
         throw redirect('/404')
     }
-    const encryptionKey = process.env[`ENCRYPTION_KEY_${service.toUpperCase().replace(/-/g, "_")}`];
 
-    const redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
+    const app = await getApp({appUuid, service});
 
-    const app = await redis.get(`app:${appUuid}:${service}`);
-    const decryptedApp = JSON.parse(decrypt(app, Buffer.from(encryptionKey, "base64url")));
+    if (!app) {
+        throw new Error("App not found")
+    }
 
-    const tokenIds = decryptedApp.tokens;
+    const tokenIds = app.tokens;
     const tokenPromises = tokenIds.map(async (tokenId) => {
-        const tokenRaw = await redis.get(tokenId);
-        return JSON.parse(decrypt(tokenRaw, Buffer.from(encryptionKey, "base64url")));
+        const token = await getFromRedis({key: tokenId, service});
+        return {[tokenId]: token};
     });
 
     const tokens = await Promise.all(tokenPromises);
 
     return Response.json({
         org,
-        app: decryptedApp,
+        app,
         tokens,
+        service,
+        appUuid,
     })
 }
 
 export default function OauthAppPage() {
-    const {org, app, tokens} = useLoaderData<typeof loader>();
+    const {org, app, tokens, service, appUuid} = useLoaderData<typeof loader>();
 
     return (
         <div className="bg-[#f5f5dc] text-[#222] font-mono min-h-screen flex flex-col items-center">
@@ -74,14 +71,17 @@ export default function OauthAppPage() {
                         </div>
                     </div>
                     <div>
-                        {tokens.map(token => (
-                            <div className="bg-white border border-gray-300 rounded p-4 mb-4">
-                                <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">{JSON.stringify(token, null, 2)}</div>
-                                <form method="post" action={`/refresh-token/${token.uuid}`}>
-                                    <button className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded mt-2">Refresh Token</button>
-                                </form>
-                            </div>
-                        ))}
+                        {tokens.map((tokenObj, idx) => {
+                            const [tokenId, token] = Object.entries(tokenObj)[0];
+                            return (
+                                <div className="bg-white border border-gray-300 rounded p-4 mb-4">
+                                    <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">{JSON.stringify(token, null, 2)}</div>
+                                    <form method="post" action={`/refresh-token/${service}/${appUuid}/${tokenId}`}>
+                                        <button className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded mt-2">Refresh Token</button>
+                                    </form>
+                                </div>
+                            )
+                        })}
                     </div>
                 </div>
             </main>

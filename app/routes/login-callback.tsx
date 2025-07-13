@@ -1,7 +1,7 @@
 import { redirect } from "@remix-run/node";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { commitSession, getSession } from "~/utils/backend.cookie";
-import { saveOrgInRedis } from "~/utils/backend.server";
+import { saveOrgInRedis } from "~/utils/backend.redis";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
     const url = new URL(request.url);

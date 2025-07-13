@@ -1,17 +1,18 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { useActionData, useLoaderData } from "@remix-run/react";
-import { getAppsForOrg, getFromRedis, getOrg, requireOrg } from "~/utils/backend.server";
+import { getApp, getAppsForOrg, getFromRedis, getOrg } from "~/utils/backend.redis";
+import { requireOrg } from "~/utils/backend.server";
 
 export const loader = async({ request, params }: LoaderFunctionArgs) => {
     const orgKey = await requireOrg(request);
     const org = await getOrg(orgKey);
-    const appKeys = await getAppsForOrg(orgKey);
+    const appKeys = await getAppsForOrg(orgKey) ?? [];
 
     const appPromises = appKeys.map(async (appKey) => {
-        const appData = await getFromRedis({key: appKey, service: appKey.split(":")[2]});
+        const [_, appUuid, service] = appKey.split(":")
+        const app = await getApp({appUuid, service})
         return {
-            appKey,
-            appData
+            [appKey]: app,
         }
     });
 
@@ -46,7 +47,8 @@ export default function OrgPage() {
                         </a>
                     </div>
                     <div className="space-y-4">
-                    {apps.map(({appKey, appData}) => {
+                    {apps.map((appObj, idx) => {
+                        const [appKey, appData] = Object.entries(appObj)[0];
                         return (
                             <div className="bg-white border border-gray-300 rounded p-4">
                                 <h2 className="text-lg font-semibold mb-1">{appData.service}</h2>
