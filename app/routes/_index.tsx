@@ -1,8 +1,7 @@
 import {  LoaderFunctionArgs, ActionFunctionArgs, redirect, MetaFunction } from "@remix-run/node";
-import { curlmateKeyCookie, getSession } from "../utils/backend.cookie";
-import { randomBytes } from "crypto"
+import {  getSession } from "../utils/backend.cookie";
 import { useLoaderData } from "@remix-run/react";
-import { getOrg, requireOrg } from "~/utils/backend.server";
+import { getOrg } from "~/utils/backend.redis";
 
 export const meta: MetaFunction = () => {
   return [

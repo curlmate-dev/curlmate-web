@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { getFromRedis } from "~/utils/backend.server";
+import { getFromRedis } from "~/utils/backend.redis";
 
 export const loader = async ({ request, params}: LoaderFunctionArgs) => {
     const { service, appUuid } = params;

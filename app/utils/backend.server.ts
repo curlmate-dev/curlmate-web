@@ -2,78 +2,15 @@ import * as path from "path"
 import fs from "fs"
 import yaml from 'js-yaml'
 import { v4 as uuidv4 } from "uuid"
-import { Redis } from "@upstash/redis"
-import { encrypt } from "./backend.encryption"
-import { decrypt } from "./backend.encryption"
 import { getSession } from "./backend.cookie"
 import { redirect } from "@remix-run/node"
-
-const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN
-});
+import { getFromRedis, getOrg, saveAppsForOrg, saveInRedis } from "./backend.redis"
 
 export async function readYaml(filePath: string) {
     const absoulutePath = path.join(...[process.cwd(), '/app', filePath])
     const fileContents = fs.readFileSync(absoulutePath, 'utf-8')
     const config = yaml.load(fileContents)
     return config;
-}
-
-export async function getFromRedis(opts: { key: string; service: string }) {
-    const { key , service } = opts;
-    const encryptionKey = process.env[`ENCRYPTION_KEY_${service.toUpperCase().replace(/-/g, "_")}`];
-
-    const redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    });
-
-    const value = await redis.get(key);
-
-    const decryptedValue = JSON.parse(decrypt(value, Buffer.from(encryptionKey, "base64url")));
-
-    return decryptedValue;
-};
-
-export async function saveInRedis(opts: {
-    key: string;
-    value: string | object;
-    service: string;
-}) {
-    const { key, value, service} = opts;
-    const encryptionKey = process.env[`ENCRYPTION_KEY_${service.toUpperCase().replace(/-/g, "_")}`];
-    const redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN
-    });
-
-    const stringifiedValue =  typeof value === "object" ? JSON.stringify(value) : value;
-    const encryptedValue = encrypt(stringifiedValue, Buffer.from(encryptionKey, "base64url"));
-
-    await redis.set(key, encryptedValue)
-}
-
-export async function saveOrgInRedis(user: object) {
-    if ("login" in user) {
-        const redisKey = `org:${user.login}`;
-        const existing = await redis.get(redisKey);
-        if (!existing) {
-            await redis.set(redisKey, JSON.stringify({
-                id: user.id,
-                login: user.login,
-                avatar: user.avatar_url,
-                email: user.email,
-                apps: []                
-            }))
-        }
-        return redisKey;
-    } else {
-        return {
-            "error": "Email not received from Github"
-        }
-    }
-
 }
 
 export function getAuthUrl(opts: {
@@ -168,13 +105,9 @@ export async function configureApp(opts: {
         service,
     });
 
-    const key = `app:${appUuid}:${service}`;
+    const appKey = `app:${appUuid}:${service}`;
 
-    if (orgKey) {
-        const org = await redis.get(orgKey);
-        org.apps.push(key);
-        await redis.set(orgKey, org);
-    }
+    orgKey && await saveAppsForOrg(orgKey, appKey )
 
     const value = {
         clientId,
@@ -188,9 +121,39 @@ export async function configureApp(opts: {
         custAuthUrl: `${origin}/oauth/${service}/${appUuid}`
     };
 
-    await saveInRedis({key, value, service});
+    await saveInRedis({key: appKey, value, service});
 
     return appUuid;
+}
+
+export async function getRefreshToken(opts: {
+    appUuid: string;
+    tokenUuid: string;
+    service: string;
+}) {
+    const { appUuid, tokenUuid, service } = opts;
+    if (!appUuid) {
+        throw new Error("Missing App Id");
+    }
+
+    if (!tokenUuid) {
+        throw new Error("Missing Token Id");
+    }
+
+    if (!service) {
+        throw new Error("Missing service name");
+    }
+
+    const token = await getFromRedis({key: `token:${tokenUuid}`, service});
+
+    const app = await getFromRedis({key:`app:${appUuid}`, service});
+
+    const response = fetch(refreshTokenUrl, {
+        method: "POST",
+        headers:{
+            "Authorization": `Basic `
+        } 
+    })
 }
 
 export async function requireOrg(request: Request): Promise<string> {
@@ -200,15 +163,4 @@ export async function requireOrg(request: Request): Promise<string> {
         throw redirect("/")
     }
     return orgKey;
-}
-
-export async function getAppsForOrg(orgKey: string): Promise<string[]> {
-    const org = await redis.get(orgKey);
-    const apps = org.apps;
-    return apps;
-}
-
-export async function getOrg(orgKey: string) {
-    const org = await redis.get(orgKey);
-    return org;
 }

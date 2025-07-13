@@ -1,42 +1,45 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { exchangeAuthCodeForToken } from "~/utils/backend.server";
-import { Redis } from "@upstash/redis"
-import { curlmateKeyCookie } from "~/utils/backend.cookie";
+import { exchangeAuthCodeForToken, readYaml } from "~/utils/backend.server";
 import { v4 as uuidv4 } from "uuid";
-import { decrypt, encrypt } from "~/utils/backend.encryption";
+import { UserInfo } from "~/utils/types";
+import {getApp, saveInRedis} from "~/utils/backend.redis"
 
 export async function loader({request}: LoaderFunctionArgs) {
     const url = new URL(request.url);
     const authCode = url.searchParams.get('code');
     const [appUuid, service] = url.searchParams.get('state')?.split(":") ?? [];
 
-    const encryptionKey = process.env[`ENCRYPTION_KEY_${service.toUpperCase().replace(/-/g, "_")}`];
-
-    const redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN
-    });
-
-    const appData = await redis.get(`app:${appUuid}:${service}`);
-
-    const decrtyptedAppData = JSON.parse(decrypt(appData, Buffer.from(encryptionKey, "base64url")));
+    const appData = await getApp({appUuid, service});
+    if (!appData) { throw new Error("App not found")};
 
     if (authCode) {
         try {
             const tokenResponse = await exchangeAuthCodeForToken({
                 authCode,
-                clientId: decrtyptedAppData.clientId,
-                clientSecret: decrtyptedAppData.clientSecret,
-                tokenUrl: decrtyptedAppData.tokenUrl,
-                redirectUri: decrtyptedAppData.redirectUri
+                clientId: appData.clientId,
+                clientSecret: appData.clientSecret,
+                tokenUrl: appData.tokenUrl,
+                redirectUri: appData.redirectUri
             });
 
-            const tokenUuid = uuidv4();
-            const encryptedTokenResponse = encrypt(JSON.stringify(tokenResponse), Buffer.from(encryptionKey, "base64url"));
-            await redis.set(`token:${tokenUuid}`, encryptedTokenResponse);
-            decrtyptedAppData.tokens.push(`token:${tokenUuid}`);
-            const reencryptedAppData = encrypt(JSON.stringify(decrtyptedAppData), Buffer.from(encryptionKey, "base64url"));
-            await redis.set(`app:${appUuid}:${service}`, reencryptedAppData);
+            const serviceSpecs = await readYaml(`/oauth/${service}.yaml`);
+            const userInfoUrl = serviceSpecs.userInfoUrl;
+            const userInfoRes = await fetch(userInfoUrl, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${tokenResponse.access_token}`,
+                    Accept: 'application/json'
+                }
+            })
+            const rawUserInfo = await userInfoRes.json();
+            const { email } = UserInfo.parse(rawUserInfo);
+
+            const tokenUuid = uuidv4()
+            const tokenId = `token:${tokenUuid}`;
+            await saveInRedis({ key: tokenId , value: { email, tokenResponse }, service})
+
+            appData.tokens.push(tokenId);
+            await saveInRedis({key: `app:${appUuid}:${service}`, value: appData, service })
 
             return redirect(`/success/${service}/${tokenUuid}`);
         } catch(error) {
