@@ -6,7 +6,7 @@ import { getOrg } from "~/utils/backend.redis";
 export const meta: MetaFunction = () => {
   return [
     { title: "curlmate" },
-    { name: "description", content: "Oauth2 tokens for services" },
+    { name: "description", content: "Easy Oauth2 tokens for most popular APIs" },
   ];
 };
 
@@ -42,7 +42,7 @@ export default function Index() {
       <main className="flex-grow space-y-8">
         <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md">
           <h1 className="underline">You have reached Curlmate[Encrypted]</h1>
-          <p>An Oauth2 orchestrator and Oauth2 token bank</p>
+          <p>An Oauth2 orchestrator and Oauth2 token bank for most popular APIs</p>
           <p>OAuth tokens stored encrypted</p>
           <p>Use your oauth token to run API requests with Curlmate as a proxy server <a className="underline text-blue-600" href="/how-it-works.html">how it works</a></p>
         </div>
