@@ -1,4 +1,4 @@
-import {z} from "zod";
+import {string, z} from "zod";
 
 export const Org = z.object({
     id: z.number(),
@@ -22,4 +22,15 @@ export const App = z.object({
 
 export const UserInfo = z.object({
     email: z.email(),
+})
+
+export const ServiceConfig = z.object({
+    name: z.string(),
+    authUrl: z.string(),
+    tokenUrl: z.string(),
+    userInfoUrl: z.string(),
+    scopes: z.record(z.string(), z.string()),
+    userInfoScope: z.optional(z.string()),
+    additionalRequired: z.record(z.string(), z.string()).optional(),
+    additionalHeaders: z.record(z.string(), z.string()).optional(),
 })
