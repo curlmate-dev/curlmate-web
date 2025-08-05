@@ -11,7 +11,7 @@ export const loader = async({ request }: LoaderFunctionArgs) => {
 
   const url = new URL(request.url);
 
-  const oauthConfig = await readYaml(`/oauth${url.pathname}.yaml`);
+  const oauthConfig = readYaml(`/oauth${url.pathname}.yaml`);
 
   if (url.pathname === "/slack" && process.env.NODE_ENV === "development") {
     oauthConfig.redirectUri = process.env.SLACK_OAUTH_CALLBACK_URL
@@ -25,23 +25,50 @@ export const loader = async({ request }: LoaderFunctionArgs) => {
   });
 }
 
-export const action = async({ request }: ActionFunctionArgs) => {
+export const action = async({ request, params }: ActionFunctionArgs) => {
+    const { service }= params;
+
     const session = await getSession(request.headers.get("Cookie") || "");
     const orgKey = session.get("orgKey");
 
     const formData = await request.formData()
     const url = new URL(request.url);
 
-    const service = formData.get("service");
     const origin = url.origin;
-  
+
+    const clientId = formData.get("clientId")?.toString();
+    const clientSecret = formData.get("clientSecret")?.toString();;
+    const scopes = formData.get("scopes")?.toString() ?? "";
+    const redirectUri = formData.get("redirectUri")?.toString();
+    const authUrl = formData.get("authUrl")?.toString();
+    const tokenUrl = formData.get("tokenUrl")?.toString();
+
+    const fields = {
+      clientId,
+      clientSecret,
+    }
+    
+    if (!clientId) {
+      return Response.json({
+        error: {clientId: "Missing Client Id"},
+        fields,
+      })
+    }
+
+    if (!clientSecret) {
+      return Response.json({
+        error: {clientSecret: "Missing Client Secret" },
+        fields,
+      })
+    }
+
     const appUuid = await configureApp({
-      clientId: formData.get("clientId"),
-      clientSecret: formData.get("clientSecret"), 
-      redirectUri: formData.get("redirectUri"), 
-      scopes: formData.get("scopes"), 
-      authUrl: formData.get("authUrl"),
-      tokenUrl: formData.get("tokenUrl"),
+      clientId,
+      clientSecret,
+      redirectUri,
+      scopes,
+      authUrl, 
+      tokenUrl,
       service,
       origin,
       orgKey 
@@ -85,12 +112,14 @@ export default function OAuthPage() {
           <div className="border border-gray-400 bg-white text-gray-600 p-4 w-full max-w-2xl shadow-md space-y-4">
             <div className="space-y-2">
               <label>Client ID</label>
-              <input name="clientId" defaultValue={actionData?.clientId ?? ""} className="w-full p-1 border bg-white" type="text" placeholder="Paste your Client ID" />
+              <input name="clientId" defaultValue={actionData?.fields.clientId ?? ""} className="w-full p-1 border bg-white" type="text" placeholder="Paste your Client ID" />
+              <div className="text-red-600">{actionData?.error?.clientId}</div>
             </div>
 
             <div className="space-y-2">
               <label>Client Secret</label>
-              <input name="clientSecret" defaultValue={actionData?.clientSecret ?? ""} className="w-full p-1 border bg-white" type="text" placeholder="Paste your Client Secret" />
+              <input name="clientSecret" defaultValue={actionData?.fields.clientSecret ?? ""} className="w-full p-1 border bg-white" type="text" placeholder="Paste your Client Secret" />
+              <div className="text-red-600">{actionData?.error?.clientSecret}</div>
             </div>
 
             <div className="space-y-2">

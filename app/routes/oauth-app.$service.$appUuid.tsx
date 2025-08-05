@@ -14,7 +14,7 @@ export const loader = async({ request, params }: LoaderFunctionArgs) => {
     if (!service || !appUuid) {
         throw redirect('/404')
     }
-
+    
     const app = await getApp({appUuid, service});
 
     if (!app) {

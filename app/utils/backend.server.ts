@@ -5,11 +5,14 @@ import { v4 as uuidv4 } from "uuid"
 import { getSession } from "./backend.cookie"
 import { redirect } from "@remix-run/node"
 import { getFromRedis, getOrg, saveAppsForOrg, saveInRedis } from "./backend.redis"
+import { ServiceConfig, UserInfo } from "./types"
+import { z } from "zod";
 
-export async function readYaml(filePath: string) {
-    const absoulutePath = path.join(...[process.cwd(), '/app', filePath])
-    const fileContents = fs.readFileSync(absoulutePath, 'utf-8')
-    const config = yaml.load(fileContents)
+export function readYaml(filePath: string) {
+    const absoulutePath = path.join(...[process.cwd(), '/app', filePath]);
+    const fileContents = fs.readFileSync(absoulutePath, 'utf-8');
+    const rawConfig = yaml.load(fileContents);
+    const config = ServiceConfig.parse(rawConfig);
     return config;
 }
 
@@ -26,9 +29,18 @@ export function getAuthUrl(opts: {
         client_id: opts.clientId,
         response_type: "code",
         redirect_uri: opts.redirectUri,
-        scope: opts.scopes,
         state: `${opts.appUuid}:${opts.service}`,
     });
+
+    const serviceConfig = readYaml(`/oauth/${opts.service}.yaml`);
+    const scope = getScopeForService({
+        serviceConfig,
+        scope: opts.scopes
+    });
+
+    scope && params.set("scope", scope)
+
+    getAdditionalParamsForService({serviceConfig, params});
 
     const authUrl = `${opts.authUrl}?${params.toString()}`;
 
@@ -41,24 +53,14 @@ export async function exchangeAuthCodeForToken(opts: {
     clientSecret: string,
     tokenUrl: string,
     redirectUri: string,
+    service: string,
 }) {    
+    const { service , authCode, clientId, clientSecret, tokenUrl, redirectUri} = opts;
     const params = new URLSearchParams();
-    params.append('grant_type', 'authorization_code');
-    params.append('code', opts.authCode);
-    params.append('redirect_uri', opts.redirectUri);
-    params.append('client_id', opts.clientId);
-    params.append('client_secret', opts.clientSecret);
+    getAuthTokenParamsForService({ service, authCode, clientId, clientSecret, redirectUri,  params });
+    const requestOptions = getRequestOptionsForService({ service, authCode, clientId, clientSecret, redirectUri,  params });
 
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Accept": "application/json",
-        },
-        body: params.toString(),
-    }
-
-    const response = await fetch(opts.tokenUrl, requestOptions);
+    const response = await fetch(tokenUrl, requestOptions);
 
     if (!response.ok) {
         const errorText = await response.text();
@@ -163,4 +165,131 @@ export async function requireOrg(request: Request): Promise<string> {
         throw redirect("/")
     }
     return orgKey;
+}
+
+export function getScopeForService(opts: {
+    serviceConfig: z.infer<typeof ServiceConfig>;
+    scope: string;
+}) {
+
+    const { serviceConfig, scope } = opts;
+
+    const scopes = scope ? [scope]: [];
+
+    const { userInfoScope } = serviceConfig
+
+    userInfoScope && scopes.push(userInfoScope)
+    
+    return scopes.join(" ")
+}
+
+export function getAdditionalParamsForService(opts: {
+    serviceConfig: z.infer<typeof ServiceConfig>
+    params: URLSearchParams;
+}) {
+    const { serviceConfig, params } = opts;
+
+    const { additionalRequired } = serviceConfig;
+
+    additionalRequired && Object.entries(additionalRequired).forEach(([key, value]) => {
+        params.set(key, value)
+    })
+ }
+
+export async function getUserInfo(opts: {
+    serviceConfig: z.infer<typeof ServiceConfig>;
+    accessToken: string;
+}) {
+    const { serviceConfig, accessToken } = opts;
+    const userInfoUrl = serviceConfig.userInfoUrl;
+
+    const requestOptions = {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json'
+        }
+    }
+    const { additionalHeaders } = serviceConfig;
+    requestOptions.headers = { ...requestOptions.headers, ...additionalHeaders};
+    const userInfoRes = await fetch(userInfoUrl, requestOptions);
+
+    const userInfo = await userInfoRes.json();
+
+    const { name } = serviceConfig;
+    if (name === "google-drive") {
+        const email = userInfo.email;
+        return email;
+    }
+
+    if (name === "notion") {
+        const email = userInfo.bot.owner.user.person.email;
+        return email;
+    }
+
+}
+
+function getAuthTokenParamsForService(opts: {
+    service: string; 
+    authCode: string; 
+    clientId: string;
+    clientSecret: string;
+    redirectUri: string;
+    params: URLSearchParams
+}) {
+    const {service, authCode, clientId, clientSecret, redirectUri, params} = opts;
+    if (service === "google-drive") {
+        params.append('grant_type', 'authorization_code');
+        params.append('code', authCode);
+        params.append('redirect_uri', redirectUri);
+        params.append('client_id', clientId);
+        params.append('client_secret', clientSecret);
+    }
+}
+
+function getRequestOptionsForService(opts: {
+    service: string; 
+    authCode: string; 
+    clientId: string;
+    clientSecret: string;
+    redirectUri: string;
+    params: URLSearchParams
+}): RequestInit {
+    const {service, authCode, clientId, clientSecret, redirectUri, params} = opts;
+    if (service === "google-drive") {
+        return {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json",
+            },
+            body: params.toString(),
+        }
+    }
+
+    if(service === "notion") {
+        const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64")
+        return {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                Authorization: `Basic ${auth}`
+            },
+            body:JSON.stringify({
+                code: authCode,
+                grant_type: "authorization_code",
+                redirect_uri: redirectUri
+            })
+        }
+    }
+
+    return {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+        },
+        body: params.toString(),
+    }
 }
