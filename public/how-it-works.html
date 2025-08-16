@@ -17,8 +17,14 @@
         border-radius: 10px;
         padding: 1rem;
         margin-bottom: 2rem;
-        max-width: 600px;
+        min-width: 200px;
+        margin: auto;
+        max-width: 420px;
+        height: 200px;
         box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: left;
       }
       .frame h2 {
         margin-top: 0;
@@ -26,6 +32,7 @@
       .dialogue {
         display: flex;
         align-items: flex-start;
+        min-width: 590px;
       }
       .character {
         width: 50px;
@@ -42,99 +49,119 @@
         padding: 0.5rem 1rem;
         border-radius: 10px;
       }
+      .flex {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-left: 1rem;
+        margin-right: 1rem;
+        max-width: 1280px;
+      }
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: auto;
+        padding: auto;
+        max-width: 1280px;
+      }
     </style>
   </head>
   <body>
-    <h1>🧰 How Curlmate Works</h1>
+    <div class="container">
+      <h1>🧰 How Curlmate Works</h1>
+      <div class="flex">
+        <div class="frame">
+          <h2>Step 1: The Org Chooses a Service</h2>
+          <div class="dialogue">
+            <div class="character">🧑‍💼</div>
+            <div class="speech">We want Google Drive OAuth. Make it work.</div>
+          </div>
+          <div class="dialogue">
+            <div class="character">🤖</div>
+            <div class="speech">Cool. Create an OAuth app with google...</div>
+          </div>
+        </div>
 
-    <div class="frame">
-      <h2>Step 1: The Org Chooses a Service</h2>
-      <div class="dialogue">
-        <div class="character">🧑‍💼</div>
-        <div class="speech">We want Google Drive OAuth. Make it work.</div>
-      </div>
-      <div class="dialogue">
-        <div class="character">🤖</div>
-        <div class="speech">Cool. Create an OAuth app with google...</div>
-      </div>
-    </div>
+        <div class="frame">
+          <h2>Step 2: Drop-in UI Redirect URL</h2>
+          <div class="dialogue">
+            <div class="character">💻</div>
+            <div class="speech">Paste this redirect URL in your OAuth Client: <br><code>https://curlmate.dev/callback</code></div>
+          </div>
+          <div class="dialogue">
+            <div class="character">🧑‍💼</div>
+            <div class="speech">Done? cool...Head over to<br><a href="https://curlmate.dev/google-drive"><code>https://curlmate.dev/google-drive</code></a></div>
+          </div>
+          <div class="dialogue">
+            <div class="character">🧑‍💼</div>
+            <div class="speech">Now plugin your Client ID, Client Secret and select the Scope on the form on <br><a href="https://curlmate.dev/google-drive"><code>https://curlmate.dev/google-drive</a></code></div>
+          </div>
+        </div>
 
-    <div class="frame">
-      <h2>Step 2: Drop-in UI Redirect URL</h2>
-      <div class="dialogue">
-        <div class="character">💻</div>
-        <div class="speech">Paste this redirect URL in your OAuth Client: <br><code>https://curlmate.dev/callback</code></div>
-      </div>
-      <div class="dialogue">
-        <div class="character">🧑‍💼</div>
-        <div class="speech">Done? cool...Head over to<br><a href="https://curlmate.dev/google-drive"><code>https://curlmate.dev/google-drive</code></a></div>
-      </div>
-      <div class="dialogue">
-        <div class="character">🧑‍💼</div>
-        <div class="speech">Now plugin your Client ID, Client Secret and select the Scope on the form on <br><a href="https://curlmate.dev/google-drive"><code>https://curlmate.dev/google-drive</a></code></div>
-      </div>
-    </div>
+        <div class="frame">
+          <h2>Step 3: Get Auth Link</h2>
+          <div class="dialogue">
+            <div class="character">🧑‍💼</div>
+            <div class="speech">Click on Configure OAuth APP</div>
+          </div>
+          <div class="dialogue">
+            <div class="character">🔐</div>
+            <div class="speech">Configuration done, you will get an auth link for your users <br><a href="http://curlmate.dev/oauth/google-drive/35cfe597-5179-4758-8ba4-49c618d8f04a"><code>http://curlmate.dev/oauth/google-drive/35cfe597-5179-4758-8ba4-49c618d8f04a</a></code></div>
+          </div>
+        </div>
 
-    <div class="frame">
-      <h2>Step 3: Get Auth Link</h2>
-      <div class="dialogue">
-        <div class="character">🧑‍💼</div>
-        <div class="speech">Click on Configure OAuth APP</div>
-      </div>
-      <div class="dialogue">
-        <div class="character">🔐</div>
-        <div class="speech">Configuration done, you will get an auth link for your users <br><a href="http://curlmate.dev/oauth/google-drive/35cfe597-5179-4758-8ba4-49c618d8f04a"><code>http://curlmate.dev/oauth/google-drive/35cfe597-5179-4758-8ba4-49c618d8f04a</a></code></div>
-      </div>
-    </div>
+        <div class="frame">
+          <h2>Step 4: User authorizes as usual for OAuth with id and password</h2>
+          <div class="dialogue">
+            <div class="character">🧑‍💼</div>
+            <div class="speech">User Authorizes your OAuth Client as usual in the OAuth process</div>
+          </div>
+        </div>
 
-    <div class="frame">
-      <h2>Step 4: User authorizes as usual for OAuth with id and password</h2>
-      <div class="dialogue">
-        <div class="character">🧑‍💼</div>
-        <div class="speech">User Authorizes your OAuth Client as usual in the OAuth process</div>
-      </div>
-    </div>
+        <div class="frame">
+          <h2>Step 5: Token Lands Back in Curlmate</h2>
+          <div class="dialogue">
+            <div class="character">🧠</div>
+            <div class="speech">User gets redirected to a page where they see the OAuth token<br><a href="https://curlmate.dev/success/google-drive/928e2bb1-e613-4b11-853f-2224c6f454c9"><code>https://curlmate.dev/success/google-drive/928e2bb1-e613-4b11-853f-2224c6f454c9</a></code></div>
+          </div>
+          <div class="dialogue">
+            <div class="character">🤖</div>
+            <div class="speech">Done. If you created an account with us using Github Login then you can now access the OAuth token of your user</div>
+          </div>
+        </div>
 
-    <div class="frame">
-      <h2>Step 5: Token Lands Back in Curlmate</h2>
-      <div class="dialogue">
-        <div class="character">🧠</div>
-        <div class="speech">User gets redirected to a page where they see the OAuth token<br><a href="https://curlmate.dev/success/google-drive/928e2bb1-e613-4b11-853f-2224c6f454c9"><code>https://curlmate.dev/success/google-drive/928e2bb1-e613-4b11-853f-2224c6f454c9</a></code></div>
-      </div>
-      <div class="dialogue">
-        <div class="character">🤖</div>
-        <div class="speech">Done. If you created an account with us using Github Login then you can now access the OAuth token of your user</div>
-      </div>
-    </div>
-
-    <div class="frame">
-      <h2>Step 6: Curl Everything</h2>
-      <div class="dialogue">
-        <div class="character">👨‍💻</div>
-        <div class="speech">Give me a curl for listing Google Drive files!</div>
-      </div>
-      <div class="dialogue">
-        <div class="character">🤖</div>
-        <div class="speech">
-          <code>
-            curl -X POST https://curlmate.io/proxy \ <br/>
-            -H "Authorization: Bearer token" \ <br/>
-            -d '{ "service": "gdrive", "endpoint": "files" }'
-          </code>
+        <div class="frame">
+          <h2>Step 6: Curl Everything</h2>
+          <div class="dialogue">
+            <div class="character">👨‍💻</div>
+            <div class="speech">Give me a curl for listing Google Drive files!</div>
+          </div>
+          <div class="dialogue">
+            <div class="character">🤖</div>
+            <div class="speech">
+              <code>
+                curl -X POST https://curlmate.io/proxy \ <br/>
+                -H "Authorization: Bearer token" \ <br/>
+                -d '{ "service": "gdrive", "endpoint": "files" }'
+              </code>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="frame">
+            <h2>That's It. You’re Done.</h2>
+            <div class="dialogue">
+              <div class="character">🧑‍💼</div>
+              <div class="speech">That was... suspiciously smooth.</div>
+            </div>
+            <div class="dialogue">
+              <div class="character">🤖</div>
+              <div class="speech">Yes. We know. You're welcome. Your OAuth APP Client ID, Client Secret and all OAuth tokens are stored encrypted!!!</div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="frame">
-      <h2>That's It. You’re Done.</h2>
-      <div class="dialogue">
-        <div class="character">🧑‍💼</div>
-        <div class="speech">That was... suspiciously smooth.</div>
-      </div>
-      <div class="dialogue">
-        <div class="character">🤖</div>
-        <div class="speech">Yes. We know. You're welcome. Your OAuth APP Client ID, Client Secret and all OAuth tokens are stored encrypted!!!</div>
-      </div>
-    </div>
+   </div>
   </body>
 </html>
