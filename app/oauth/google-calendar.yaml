@@ -1,5 +1,8 @@
+  name: "google-calendar"
   authUrl: "https://accounts.google.com/o/oauth2/v2/auth"
   tokenUrl: "https://oauth2.googleapis.com/token"
+  userInfoUrl: "https://www.googleapis.com/oauth2/v3/userinfo"
+  userInfoScope: "https://www.googleapis.com/auth/userinfo.email"
   scopes:
     "Full access to the user's Google Calendar.": "https://www.googleapis.com/auth/calendar"
     "Read-only access to all calendars the user can access.": "https://www.googleapis.com/auth/calendar.readonly"

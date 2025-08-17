@@ -1,5 +1,7 @@
+  name: "linear"
   authUrl: "https://linear.app/oauth/authorize"
   tokenUrl: "https://api.linear.app/oauth/token"
+  userInfoUrl: ""
   scopes:
     "read": "read"
     "write": "write"
