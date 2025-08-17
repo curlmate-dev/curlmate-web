@@ -1,3 +1,4 @@
+  name: "salesforce"
   authUrl: "https://login.salesforce.com/services/oauth2/authorize"
   tokenUrl: "https://login.salesforce.com/services/oauth2/token"
   userInfoUrl: "https://login.salesforce.com/services/oauth2/userinfo"

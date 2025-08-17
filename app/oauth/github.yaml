@@ -1,5 +1,7 @@
+  name: "github"
   authUrl: "https://github.com/login/oauth/authorize"
   tokenUrl: "https://github.com/login/oauth/access_token"
+  userInfoUrl: ""
   scopes:
     "read:user": "read:user"
     "user:email": "user:email"

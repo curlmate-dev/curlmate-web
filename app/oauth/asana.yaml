@@ -1,4 +1,6 @@
+  name: "asana"
   authUrl: "https://app.asana.com/-/oauth_authorize"
   tokenUrl: "https://app.asana.com/-/oauth_token"
+  userInfoUrl: ""
   scopes:
     "default": "default"
