@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export default function Index() {
   const services = [
     { name: "Asana", icon: "/asana.svg", link: "/asana", alt: "asana-logo" },
@@ -25,6 +27,7 @@ export default function Index() {
     { name: "Slack", icon: "/slack.svg", link: "/slack" },
   ];
 
+  const [isOpen, setIsOpen] = useState(false);
   return (
     <main className="min-h-screen bg-white text-gray-900 font-sans">
       {/* Header */}
@@ -37,9 +40,61 @@ export default function Index() {
               <span className="font-medium">Curlmate</span>
             </a>
           </div>
-
+          <div className="lg:hidden" onClick={() => setIsOpen(!isOpen)}>
+            <svg
+              className="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 7L4 7"
+                stroke="#1C274C"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M20 12L4 12"
+                stroke="#1C274C"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M20 17L4 17"
+                stroke="#1C274C"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          <div
+            className={`lg:hidden fixed inset-0 bg-[#fbf2e0] font-semibold flex-col items-center justify-center onClick={() => setIsOpen(false)} ${isOpen ? "flex" : "hidden"}`}
+          >
+            <div>
+              <a href="/" className="hover:underline">
+                Home
+              </a>
+            </div>
+            <div>
+              <a href="" className="hover:underline">
+                Pricing
+              </a>
+            </div>
+            <div>
+              <a href="/login" className="hover:underline">
+                Login With Github
+              </a>
+            </div>{" "}
+            <button
+              className="mt-8 hover:underline"
+              onClick={() => setIsOpen(false)}
+            >
+              {" "}
+              Close{" "}
+            </button>
+          </div>
           {/* Right icons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 hidden lg:flex">
             <button
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-200"
               aria-label="Subscribe"
