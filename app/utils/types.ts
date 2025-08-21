@@ -41,3 +41,12 @@ export const ServiceConfig = z.object({
   additionalRequired: z.record(z.string(), z.string()).optional(),
   additionalHeaders: z.record(z.string(), z.string()).optional(),
 });
+
+const OauthConfig = z.object({
+  authUrl: z.string(),
+  tokenUrl: z.string(),
+  redirectUri: z.string(),
+  scopes: z.record(z.string(), z.string()),
+});
+
+export type OAuthConfig = z.infer<typeof OauthConfig>;
