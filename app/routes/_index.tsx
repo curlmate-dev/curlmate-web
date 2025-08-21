@@ -29,10 +29,9 @@ export default function Index() {
 
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <main className="min-h-screen bg-white text-gray-900 font-sans">
-      {/* Header */}
+    <main className="min-h-screen bg-[#fbf2e0] text-gray-900 font-sans">
       <header className="border-b border-gray-200 bg-white ">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between">
           <div className="flex items-center justify-between">
             {/* Brand */}
             <a href="/" className="flex items-center gap-2">
@@ -40,7 +39,11 @@ export default function Index() {
               <span className="font-medium">Curlmate</span>
             </a>
           </div>
-          <div className="lg:hidden" onClick={() => setIsOpen(!isOpen)}>
+          <div
+            className="lg:hidden"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-hidden="true"
+          >
             <svg
               className="w-5 h-5"
               viewBox="0 0 24 24"
@@ -171,7 +174,7 @@ export default function Index() {
           ))}
         </div>
       </section>
-      <footer className="border-b border-gray-200 bg-white text-sm py-6">
+      <footer className="border-gray-200 text-xs py-6">
         <div className="flex flex-wrap justify-center max-w-7xl mx-auto space-x-6">
           <a
             href="/tos.html"
