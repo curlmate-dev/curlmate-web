@@ -4,13 +4,13 @@ import { requireOrg } from "~/utils/backend.server";
 import { getOrg } from "~/utils/backend.redis";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-    const orgKey = await requireOrg(request);
-    const org = await getOrg(orgKey);
-   
-    return Response.json({ org })
-}
+  const orgKey = await requireOrg(request);
+  const org = await getOrg(orgKey);
 
-export const action = async({}) => {
+  return Response.json({ org });
+};
+
+export const action = async ({}) => {
   return redirect("/logout");
 }
 
