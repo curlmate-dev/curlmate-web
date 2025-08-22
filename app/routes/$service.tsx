@@ -92,7 +92,6 @@ export default function OAuthPage() {
 
   return (
     <main className="bg-[#fbf2e0] min-h-screen text-gray-900 font-sans">
-      {/* Header */}
       <header className="border-b border-gray-200 bg-white ">
         <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between">
           <div className="flex items-center justify-between">
