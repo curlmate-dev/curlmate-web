@@ -102,7 +102,7 @@ export default function OAuthPage() {
             </a>
           </div>
           <div
-            className="lg:hidden"
+            className="lg:hidden flex items-center"
             onClick={() => setIsOpen(!isOpen)}
             aria-hidden="true"
           >
@@ -227,16 +227,16 @@ export default function OAuthPage() {
       {/* Redirect / Auth URLs */}
       <section className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex flex-col border border-gray-400 bg-white rounded-lg px-2 flex flex-col pt-2 pb-2">
-          <div>
+          <div className="font-medium wrap">
             <strong>Redirect URL:</strong>{" "}
             <code>{oauthConfig.redirectUri}</code>
           </div>
-          <div>
+          <div className="font-medium wrap">
             <strong>Auth URL:</strong>
             {"  "}
             <code>{oauthConfig.authUrl}</code>
           </div>
-          <div>
+          <div className="font-medium wrap">
             <strong>Token URL:</strong>
             {"  "}
             <code>{oauthConfig.tokenUrl}</code>

@@ -77,7 +77,7 @@ export default function APICurlPage() {
             </a>
           </div>
           <div
-            className="lg:hidden"
+            className="lg:hidden flex items-center"
             onClick={() => setIsOpen(!isOpen)}
             aria-hidden="true"
           >
