@@ -22,6 +22,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     throw new Error("App not found");
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { clientSecret, ...safeApp } = app;
   const tokenIds = app.tokens;
   const tokenPromises = tokenIds.map(async (tokenId) => {
     const token = await getFromRedis({ key: tokenId, service });
@@ -32,7 +34,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   return Response.json({
     org,
-    app,
+    app: safeApp,
     tokens,
     service,
     appUuid,
