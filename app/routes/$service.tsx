@@ -49,20 +49,21 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const redirectUri = formData.get("redirectUri")?.toString();
   const authUrl = formData.get("authUrl")?.toString();
   const tokenUrl = formData.get("tokenUrl")?.toString();
+  const isCurlmate = formData.get("isCurlmate") === "on";
 
   const fields = {
     clientId,
     clientSecret,
   };
 
-  if (!clientId) {
+  if (!clientId && !isCurlmate) {
     return Response.json({
       error: { clientId: "Missing Client Id" },
       fields,
     });
   }
 
-  if (!clientSecret) {
+  if (!clientSecret && !isCurlmate) {
     return Response.json({
       error: { clientSecret: "Missing Client Secret" },
       fields,
@@ -79,6 +80,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     service,
     origin,
     orgKey,
+    isCurlmate,
   });
 
   return redirect(`/oauth-app/${service}/${appUuid}`);
@@ -89,6 +91,7 @@ export default function OAuthPage() {
   const { org, oauthConfig } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const [isOpen, setIsOpen] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   return (
     <main className="bg-[#fbf2e0] min-h-screen text-gray-900 font-sans">
@@ -249,37 +252,48 @@ export default function OAuthPage() {
           method="post"
           className="border border-gray-400 bg-white rounded-lg flex flex-col gap-y-8"
         >
-          <div className="flex flex-col gap-y-2">
-            <label className="flex flex-col gap-y-1">
-              Client ID:
-              <input
-                name="clientId"
-                defaultValue={actionData?.fields.clientId ?? ""}
-                className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white h-10"
-                type="text"
-                placeholder="Paste your Client ID"
-              />
-            </label>
-            <div className="text-red-600">{actionData?.error?.clientId}</div>
-          </div>
-
-          <div className="flex flex-col gap-y-2">
-            <label className="flex flex-col gap-y-1">
-              Client Secret:
-              <input
-                name="clientSecret"
-                defaultValue={actionData?.fields.clientSecret ?? ""}
-                className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white h-10"
-                type="text"
-                placeholder="Paste your Client Secret"
-              />
-            </label>
-            <div className="text-red-600">
-              {actionData?.error?.clientSecret}
+          <label className="px-1 py-1">
+            <input
+              type="checkbox"
+              name="isCurlmate"
+              checked={checked}
+              onChange={(e) => setChecked(e.target.checked)}
+            />
+            Use Curlmate Client ID
+          </label>
+          {!checked && (
+            <div className={`flex flex-col gap-y-2 px-1`}>
+              <label className="flex flex-col gap-y-1">
+                Client ID:
+                <input
+                  name="clientId"
+                  defaultValue={actionData?.fields.clientId ?? ""}
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white h-10"
+                  type="text"
+                  placeholder="Paste your Client ID"
+                />
+              </label>
+              <div className="text-red-600">{actionData?.error?.clientId}</div>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-y-2">
+          )}
+          {!checked && (
+            <div className="flex flex-col gap-y-2 px-1">
+              <label className="flex flex-col gap-y-1">
+                Client Secret:
+                <input
+                  name="clientSecret"
+                  defaultValue={actionData?.fields.clientSecret ?? ""}
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white h-10"
+                  type="text"
+                  placeholder="Paste your Client Secret"
+                />
+              </label>
+              <div className="text-red-600">
+                {actionData?.error?.clientSecret}
+              </div>
+            </div>
+          )}
+          <div className="flex flex-col gap-y-2 px-1">
             <label className="flex flex-col gap-y-1">
               Scopes:
               <select
@@ -304,13 +318,15 @@ export default function OAuthPage() {
             <input type="hidden" name="tokenUrl" value={oauthConfig.tokenUrl} />
             <input type="hidden" name="service" value={service} />
           </div>
+          <div className="px-1">
+            <button
+              className="bg-[#d6d6d6] h-12 w-full rounded-lg border border-gray-600 text-sm font-bold shadow hover:bg-[#c0c0c0]"
+              type="submit"
+            >
+              Configure OAuth APP
+            </button>
+          </div>
 
-          <button
-            className="bg-[#d6d6d6] h-12 rounded-lg border border-gray-600 text-sm font-bold shadow hover:bg-[#c0c0c0]"
-            type="submit"
-          >
-            Configure OAuth APP
-          </button>
         </form>
       </section>
       {/* Footer */}

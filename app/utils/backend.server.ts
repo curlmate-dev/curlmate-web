@@ -18,12 +18,12 @@ export function readYaml(filePath: string) {
 
 export function getAuthUrl(opts: {
   clientId: string;
-  clientSecret: string;
   redirectUri: string;
   authUrl: string;
   scopes: string;
   appUuid: string;
   service: string;
+  isCurlmate: boolean;
 }) {
   const params = new URLSearchParams({
     client_id: opts.clientId,
@@ -97,6 +97,7 @@ export async function configureApp(opts: {
   service: string;
   origin: string;
   orgKey: string | undefined;
+  isCurlmate: boolean;
 }) {
   const {
     clientId,
@@ -108,27 +109,40 @@ export async function configureApp(opts: {
     service,
     origin,
     orgKey,
+    isCurlmate,
   } = opts;
 
   const appUuid = uuidv4();
 
+  const curlmateCID =
+    process.env[`CURLMATE_${service.toUpperCase().replace(/-/g, "_")}_CID`];
+  if (!curlmateCID && isCurlmate) {
+    throw new Error("Curlmate Client ID missing");
+  }
   const appAuthUrl = getAuthUrl({
-    clientId,
-    clientSecret,
+    clientId: !isCurlmate ? clientId : curlmateCID!,
     redirectUri,
     authUrl,
     scopes,
     appUuid,
     service,
+    isCurlmate,
   });
 
   const appKey = `app:${appUuid}:${service}`;
 
   orgKey && (await saveAppsForOrg(orgKey, appKey));
 
+  const curlmateCSEC =
+    process.env[`CURLMATE_${service.toUpperCase().replace(/-/g, "_")}_CSEC`];
+
+  if (!curlmateCSEC && isCurlmate) {
+    throw new Error("Curlmate Client Secret Missing");
+  }
+
   const value = {
-    clientId,
-    clientSecret,
+    clientId: !isCurlmate ? clientId : curlmateCID,
+    clientSecret: !isCurlmate ? clientSecret : curlmateCSEC,
     redirectUri,
     scopes,
     appAuthUrl,
