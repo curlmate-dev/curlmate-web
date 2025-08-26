@@ -5,5 +5,4 @@
   refreshTokenUrl: ""
   scopes:
     "API": "api"
-    "test": "test"
-  
+    "full": "full"

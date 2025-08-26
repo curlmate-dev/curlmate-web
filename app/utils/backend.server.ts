@@ -270,7 +270,7 @@ function getAuthTokenParamsForService(opts: {
 }) {
   const { service, authCode, clientId, clientSecret, redirectUri, params } =
     opts;
-  if (service === "google-drive") {
+  if (service !== "notion") {
     params.append("grant_type", "authorization_code");
     params.append("code", authCode);
     params.append("redirect_uri", redirectUri);
