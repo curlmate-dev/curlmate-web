@@ -116,7 +116,7 @@ export default function Index() {
                   <line x1="6" y1="15" x2="8" y2="15" />
                   <line x1="10" y1="15" x2="14" y2="15" />
                 </svg>
-                <span>Pricing</span>
+                <span>Subscribe for $5</span>
               </span>
             </button>
 
