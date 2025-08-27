@@ -3,4 +3,4 @@
   tokenUrl: "https://graph.facebook.com/v23.0/oauth/access_token"
   userInfoUrl: ""
   scopes:
-    "": ""
+    "instagram_basic": "instagram_basic"
