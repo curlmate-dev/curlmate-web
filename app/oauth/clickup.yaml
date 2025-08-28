@@ -1,6 +1,6 @@
   name: "clickup"
   authUrl: "https://app.clickup.com/api"
   tokenUrl: "https://api.clickup.com/api/v2/oauth/token"
-  userInfoUrl: ""
+  userInfoUrl: "https://api.clickup.com/api/v2/user"
   scopes:
     "": ""
