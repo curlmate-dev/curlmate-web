@@ -38,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       const tokenId = `token:${tokenUuid}`;
       await saveInRedis({
         key: tokenId,
-        value: { email, tokenResponse },
+        value: { email: email ? email : "", tokenResponse },
         service,
       });
 

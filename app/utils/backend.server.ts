@@ -246,7 +246,9 @@ export async function getUserInfo(opts: {
   requestOptions.headers = { ...requestOptions.headers, ...additionalHeaders };
   const userInfoRes = await fetch(userInfoUrl, requestOptions);
 
-  const userInfo = await userInfoRes.json();
+  const userInfo = !userInfoRes.ok
+    ? await userInfoRes.text()
+    : await userInfoRes.json();
 
   const { name } = serviceConfig;
   if (name === "google-drive") {
@@ -258,6 +260,8 @@ export async function getUserInfo(opts: {
     const email = userInfo.bot.owner.user.person.email;
     return email;
   }
+  const { email } = userInfo;
+  return email;
 }
 
 function getAuthTokenParamsForService(opts: {
