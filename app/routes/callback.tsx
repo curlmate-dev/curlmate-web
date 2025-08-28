@@ -29,7 +29,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         service,
       });
 
-      const email = await getUserInfo({
+      const user = await getUserInfo({
         serviceConfig,
         accessToken: tokenResponse.access_token,
       });
@@ -38,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       const tokenId = `token:${tokenUuid}`;
       await saveInRedis({
         key: tokenId,
-        value: { email: email ? email : "", tokenResponse },
+        value: { user, tokenResponse },
         service,
       });
 
