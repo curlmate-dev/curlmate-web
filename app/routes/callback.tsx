@@ -51,7 +51,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
       return redirect(`/success/${service}/${tokenUuid}`);
     } catch (error: unknown) {
-      return Response.json({ error: JSON.stringify(error as Error) });
+      return Response.json({ error });
     }
   } else {
     return Response.json({ error: "Auth Code missing" });
