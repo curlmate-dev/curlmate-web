@@ -260,8 +260,7 @@ export async function getUserInfo(opts: {
     const email = userInfo.bot.owner.user.person.email;
     return email;
   }
-  const { email } = userInfo;
-  return email;
+  return userInfo;
 }
 
 function getAuthTokenParamsForService(opts: {
