@@ -1,5 +1,21 @@
+import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { useState } from "react";
+import { userSession } from "~/utils/backend.cookie";
+import { v4 as uuidv4 } from "uuid";
 
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const { userId } = (await userSession.parse(cookieHeader)) || {};
+
+  if (!userId) {
+    return redirect("/", {
+      headers: {
+        "Set-Cookie": await userSession.serialize({ userId: uuidv4() }),
+      },
+    });
+  }
+  return Response.json({});
+};
 export default function Index() {
   const services = [
     { name: "Asana", icon: "/asana.svg", link: "/asana", alt: "asana-logo" },
@@ -138,6 +154,9 @@ export default function Index() {
                 </svg>
                 <span>Login With Github</span>
               </span>
+            </a>
+            <a href="/session" className="underline">
+              view tokens
             </a>
           </div>
         </div>

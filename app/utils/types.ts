@@ -50,3 +50,7 @@ const OauthConfig = z.object({
 });
 
 export type OAuthConfig = z.infer<typeof OauthConfig>;
+
+export const SessionUser = z.object({
+  apps: z.array(z.string()),
+});

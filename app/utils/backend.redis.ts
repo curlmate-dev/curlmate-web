@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import { App, GitUser, Org } from "./types";
+import { App, GitUser, Org, SessionUser } from "./types";
 import { z } from "zod";
 import { encrypt, decrypt } from "./backend.encryption";
 
@@ -132,4 +132,37 @@ export async function getApp(opts: {
   );
   const app = App.parse(decryptedApp);
   return app;
+}
+
+export async function saveAppForUser(opts: {
+  userId: string;
+  appKey: string;
+}): Promise<void> {
+  const { userId, appKey } = opts;
+  const rawUser = await redis.get(`user:${userId}`);
+  if (!rawUser) {
+    await redis.set(
+      `user:${userId}`,
+      {
+        apps: [appKey],
+      },
+      {
+        ex: 43200,
+      },
+    );
+  }
+  const user = SessionUser.parse(rawUser);
+  user.apps.push(appKey);
+  await redis.set(`user:${userId}`, user);
+}
+
+export async function getSessionUser(userId: string) {
+  const rawUser = await redis.get(userId);
+
+  if (!rawUser) {
+    return null;
+  }
+
+  const sessionUser = SessionUser.parse(rawUser);
+  return sessionUser;
 }
