@@ -5,7 +5,7 @@ import {
   redirect,
 } from "@remix-run/node";
 import { configureApp, readYaml } from "~/utils/backend.server";
-import { getSession } from "~/utils/backend.cookie";
+import { getSession, userSession } from "~/utils/backend.cookie";
 import { getOrg } from "~/utils/backend.redis";
 import { OAuthConfig } from "~/utils/types";
 import { useState } from "react";
@@ -38,6 +38,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie") || "");
   const orgKey = session.get("orgKey");
 
+  const { userId } = await userSession.parse(request.headers.get("Cookie"));
   const formData = await request.formData();
   const url = new URL(request.url);
 
@@ -81,12 +82,13 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     origin,
     orgKey,
     isCurlmate,
+    userId,
   });
 
   return redirect(`/oauth-app/${service}/${appUuid}`);
 };
 
-export default function OAuthPage() {
+export default function ServicePage() {
   const { service } = useParams();
   const { org, oauthConfig } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();

@@ -4,7 +4,12 @@ import { load } from "js-yaml";
 import { v4 as uuidv4 } from "uuid";
 import { getSession } from "./backend.cookie";
 import { redirect } from "@remix-run/node";
-import { getFromRedis, saveAppsForOrg, saveInRedis } from "./backend.redis";
+import {
+  getFromRedis,
+  saveAppForUser,
+  saveAppsForOrg,
+  saveInRedis,
+} from "./backend.redis";
 import { ServiceConfig } from "./types";
 import { z } from "zod";
 
@@ -97,6 +102,7 @@ export async function configureApp(opts: {
   service: string;
   origin: string;
   orgKey: string | undefined;
+  userId: string | undefined;
   isCurlmate: boolean;
 }) {
   const {
@@ -109,6 +115,7 @@ export async function configureApp(opts: {
     service,
     origin,
     orgKey,
+    userId,
     isCurlmate,
   } = opts;
 
@@ -132,6 +139,8 @@ export async function configureApp(opts: {
   const appKey = `app:${appUuid}:${service}`;
 
   orgKey && (await saveAppsForOrg(orgKey, appKey));
+
+  userId && !orgKey && (await saveAppForUser({ userId, appKey }));
 
   const curlmateCSEC =
     process.env[`CURLMATE_${service.toUpperCase().replace(/-/g, "_")}_CSEC`];
