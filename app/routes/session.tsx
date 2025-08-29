@@ -13,7 +13,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const [_, appUuid, service] = appKey.split(":");
     const app = await getApp({ appUuid, service });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { clientSecret, ...safeApp } = app || {};
+    const { clientSecret, appAuthUrl, ...safeApp } = app || {};
     return {
       [appKey]: safeApp,
     };
