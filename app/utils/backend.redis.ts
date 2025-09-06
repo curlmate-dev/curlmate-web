@@ -150,6 +150,7 @@ export async function saveAppForUser(opts: {
         ex: 43200,
       },
     );
+    return;
   }
   const user = SessionUser.parse(rawUser);
   user.apps.push(appKey);
