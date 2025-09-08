@@ -244,6 +244,9 @@ export async function getUserInfo(opts: {
   const { serviceConfig, accessToken } = opts;
   const userInfoUrl = serviceConfig.userInfoUrl;
 
+  if (!userInfoUrl) {
+    return {};
+  }
   const requestOptions = {
     method: "GET",
     headers: {
