@@ -95,11 +95,6 @@ export default function Index() {
               </a>
             </div>
             <div>
-              <a href="" className="hover:underline">
-                Pricing
-              </a>
-            </div>
-            <div>
               <a href="/login" className="hover:underline">
                 Login With Github
               </a>
@@ -114,28 +109,6 @@ export default function Index() {
           </div>
           {/* Right icons */}
           <div className="flex items-center gap-2 hidden lg:flex">
-            <button
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-200"
-              aria-label="Subscribe"
-            >
-              <span className="flex items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <rect x="2" y="5" width="20" height="14" rx="2" ry="2" />
-                  <line x1="2" y1="10" x2="22" y2="10" />
-                  <line x1="6" y1="15" x2="8" y2="15" />
-                  <line x1="10" y1="15" x2="14" y2="15" />
-                </svg>
-                <span>Subscribe for $5</span>
-              </span>
-            </button>
-
             <a
               href="/login"
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-200"
