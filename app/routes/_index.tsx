@@ -22,6 +22,7 @@ export default function Index() {
     { name: "Clickup", icon: "/clickup.svg", link: "/clickup" },
     { name: "Dropbox", icon: "/dropbox.svg", link: "/dropbox" },
     { name: "Github", icon: "/github.svg", link: "/github" },
+    { name: "Gmail", icon: "/gmail.svg", link: "/gmail" },
     {
       name: "Google Calendar",
       icon: "/google-calendar.svg",
