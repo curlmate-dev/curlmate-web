@@ -205,7 +205,7 @@ export default function ServicePage() {
 
       {/* Redirect / Auth URLs */}
       <section className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex flex-col border border-gray-400 bg-white rounded-lg px-2 flex flex-col pt-2 pb-2">
+        <div className="flex flex-col border border-gray-400 bg-white rounded-none px-2 flex flex-col pt-2 pb-2">
           <div className="font-medium text-sm wrap break-word">
             <strong>Redirect URL:</strong>{" "}
             <code>{oauthConfig.redirectUri}</code>
@@ -226,7 +226,7 @@ export default function ServicePage() {
       <section className="max-w-4xl mx-auto px-4 py-8">
         <form
           method="post"
-          className="border border-gray-400 bg-white rounded-lg flex flex-col gap-y-8"
+          className="border border-gray-400 bg-white rounded-none flex flex-col gap-y-8"
         >
           <label className="px-1 py-1">
             <input
@@ -244,7 +244,7 @@ export default function ServicePage() {
                 <input
                   name="clientId"
                   defaultValue={actionData?.fields.clientId ?? ""}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white h-10"
+                  className="border border-gray-200 dark:border-gray-700 rounded-none bg-white h-10"
                   type="text"
                   placeholder="Paste your Client ID"
                 />
@@ -259,7 +259,7 @@ export default function ServicePage() {
                 <input
                   name="clientSecret"
                   defaultValue={actionData?.fields.clientSecret ?? ""}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white h-10"
+                  className="border border-gray-200 dark:border-gray-700 rounded-none bg-white h-10"
                   type="text"
                   placeholder="Paste your Client Secret"
                 />
@@ -274,7 +274,7 @@ export default function ServicePage() {
               Scopes:
               <select
                 name="scopes"
-                className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white h-10"
+                className="border border-gray-200 dark:border-gray-700 rounded-none bg-white h-10"
               >
                 {Object.keys(oauthConfig.scopes).map((scope) => (
                   <option key={scope} value={oauthConfig.scopes[scope]}>
@@ -296,7 +296,7 @@ export default function ServicePage() {
           </div>
           <div className="px-1">
             <button
-              className="bg-[#d6d6d6] h-12 w-full rounded-lg border border-gray-600 text-sm font-bold shadow hover:bg-[#c0c0c0]"
+              className="bg-sky-400 h-12 w-full rounded-none border border-gray-600 mb-1 text-sm font-bold shadow hover:bg-sky-600"
               type="submit"
             >
               Configure OAuth APP
