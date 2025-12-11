@@ -144,7 +144,7 @@ export default function Index() {
             href="/how-it-works.html"
             className="text-blue-600 dark:text-blue-400"
           >
-            How it works
+            How it works test
           </a>
         </p>
       </section>
