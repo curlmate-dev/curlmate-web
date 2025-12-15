@@ -5,3 +5,4 @@ userInfoUrl: "https://www.googleapis.com/oauth2/v3/userinfo"
 userInfoScope: "https://www.googleapis.com/auth/userinfo.email"
 scopes:
   "Send Email Only": "https://www.googleapis.com/auth/gmail.send"
+  "Read Only": "https://www.googleapis.com/auth/gmail.readonly"
