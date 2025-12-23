@@ -3,6 +3,6 @@
   tokenUrl: "https://slack.com/api/oauth.v2.access"
   userInfoUrl: "https://slack.com/api/users.info"
   scopes:
-    "Admin": "admin"
     "chat:write": "chat:write"
+    "channels:read": "channels:read"
   userInfoScope: "users:read"  
