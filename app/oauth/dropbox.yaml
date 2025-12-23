@@ -3,6 +3,7 @@
   tokenUrl: "https://api.dropboxapi.com/oauth2/token"
   userInfoUrl: "https://api.dropboxapi.com/2/check/user"
   scopes:
+    "files.content.write": "files.content.write"
     "filesMetadataRead": "files.metadata.read"
     "account_info.read": "account_info.read"
     "files.metadata.write": "files.metadata.write"
