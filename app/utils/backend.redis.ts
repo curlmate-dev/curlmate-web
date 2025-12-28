@@ -167,3 +167,8 @@ export async function getSessionUser(userId: string) {
   const sessionUser = SessionUser.parse(rawUser);
   return sessionUser;
 }
+
+export async function getApiKeyUser(apiKey: string) {
+  const { userId } = await redis.get(`apiKey:${apiKey}`);
+  return userId;
+}
