@@ -35,6 +35,7 @@ export function getAuthUrl(opts: {
     response_type: "code",
     redirect_uri: opts.redirectUri,
     state: `${opts.appUuid}:${opts.service}`,
+    access_type: "offline",
   });
 
   const serviceConfig = readYaml(`/oauth/${opts.service}.yaml`);
