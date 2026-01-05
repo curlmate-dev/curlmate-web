@@ -42,6 +42,7 @@ export default function Index() {
     { name: "Notion", icon: "/notion.svg", link: "/notion" },
     { name: "Salesforce", icon: "/salesforce.svg", link: "/salesforce" },
     { name: "Slack", icon: "/slack.svg", link: "/slack" },
+    { name: "Pipedrive", icon: "/pipedrive.svg", link: "/pipedrive"}
   ];
 
   const [isOpen, setIsOpen] = useState(false);
