@@ -1,0 +1,10 @@
+name: "pipedrive"
+authUrl: "https://oauth.pipedrive.com/oauth/authorize"
+tokenUrl: "https://oauth.pipedrive.com/oauth/token"
+userInfoUrl: ""
+scopes:
+  "": ""
+additionalRequired:
+  "owner": ""
+additionalHeaders:
+  "Notion-Version": "2022-06-28"
