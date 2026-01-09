@@ -42,7 +42,7 @@ export default function Index() {
     { name: "Notion", icon: "/notion.svg", link: "/notion" },
     { name: "Salesforce", icon: "/salesforce.svg", link: "/salesforce" },
     { name: "Slack", icon: "/slack.svg", link: "/slack" },
-    { name: "Pipedrive", icon: "/pipedrive.svg", link: "/pipedrive"}
+    { name: "Pipedrive", icon: "/pipedrive.svg", link: "/pipedrive" },
   ];
 
   const [isOpen, setIsOpen] = useState(false);
@@ -145,7 +145,7 @@ export default function Index() {
             href="/how-it-works.html"
             className="text-blue-600 dark:text-blue-400"
           >
-            How it works test
+            How it works
           </a>
         </p>
       </section>
