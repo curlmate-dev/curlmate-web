@@ -19,6 +19,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function Index() {
   const services = [
     { name: "Asana", icon: "/asana.svg", link: "/asana", alt: "asana-logo" },
+    {
+      name: "Airtable",
+      icon: "/airtable.svg",
+      link: "/airtable",
+      alt: "airtable-logo",
+    },
     { name: "Clickup", icon: "/clickup.svg", link: "/clickup" },
     { name: "Dropbox", icon: "/dropbox.svg", link: "/dropbox" },
     { name: "Github", icon: "/github.svg", link: "/github" },
