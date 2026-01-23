@@ -1,10 +1,11 @@
-  name: "jira-software-cloud"
-  authUrl: "https://auth.atlassian.com/authorize"
-  tokenUrl: "https://auth.atlassian.com/oauth/token"
-  userInfoUrl: ""
-  scopes:
-    "Read Jira issues, boards, projects": "read:jira-work"
-    "Create and update Jira issues": "read:jira-work"
-    "Create and configure Jira projects": "manage:jira-project"
-    "Read user profiles and groups": "read:jira-user"
-    "To get refresh tokens": "offline_access"
+name: "jira-software-cloud"
+authUrl: "https://auth.atlassian.com/authorize"
+tokenUrl: "https://auth.atlassian.com/oauth/token"
+userInfoUrl: ""
+scopes:
+  "Read Jira issues, boards, projects": "read:jira-work"
+  "Create and update Jira issues": "read:jira-work"
+  "Create and configure Jira projects": "manage:jira-project"
+  "Read user profiles and groups": "read:jira-user"
+  "To get refresh tokens": "offline_access"
+authTokenRequestUrlencoded: true

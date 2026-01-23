@@ -19,16 +19,16 @@ export const App = z.object({
   clientId: z.string(),
   clientSecret: z.string(),
   redirectUri: z.string(),
-  scopes: z.string(),
+  userSelectedScope: z.string(),
   appAuthUrl: z.string(),
   tokenUrl: z.string(),
   service: z.string(),
   tokens: z.array(z.string()),
   custAuthUrl: z.string(),
-});
-
-export const UserInfo = z.object({
-  email: z.email(),
+  codeVerifier: z.string(),
+  authTokenRequestUrlencoded: z.boolean(),
+  userInfoUrl: z.string().optional(),
+  additionalHeaders: z.record(z.string(), z.string()).optional(),
 });
 
 export const ServiceConfig = z.object({
@@ -38,8 +38,9 @@ export const ServiceConfig = z.object({
   userInfoUrl: z.string(),
   scopes: z.record(z.string(), z.string()),
   userInfoScope: z.optional(z.string()),
-  additionalRequired: z.record(z.string(), z.string()).optional(),
+  additionalRequiredAuthUrlParams: z.record(z.string(), z.string()).optional(),
   additionalHeaders: z.record(z.string(), z.string()).optional(),
+  authTokenRequestUrlencoded: z.boolean(),
 });
 
 const OauthConfig = z.object({
