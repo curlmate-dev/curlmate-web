@@ -5,4 +5,5 @@
   scopes:
     "chat:write": "chat:write"
     "channels:read": "channels:read"
-  userInfoScope: "users:read"  
+  userInfoScope: "users:read"
+  authTokenRequestUrlencoded: true

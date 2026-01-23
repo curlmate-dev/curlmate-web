@@ -6,3 +6,4 @@
   scopes:
     "API": "api"
     "full": "full"
+  authTokenRequestUrlencoded: true

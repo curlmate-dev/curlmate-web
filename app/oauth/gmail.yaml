@@ -6,3 +6,4 @@ userInfoScope: "https://www.googleapis.com/auth/userinfo.email"
 scopes:
   "Send Email Only": "https://www.googleapis.com/auth/gmail.send"
   "Read Only": "https://www.googleapis.com/auth/gmail.readonly"
+authTokenRequestUrlencoded: true

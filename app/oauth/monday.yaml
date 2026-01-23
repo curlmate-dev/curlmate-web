@@ -1,6 +1,7 @@
-  name: "monday"
-  authUrl: "https://auth.monday.com/oauth2/authorize"
-  tokenUrl: "https://auth.monday.com/oauth2/token"
-  userInfoUrl: ""
-  scopes:
-    "Read general information about the account": "account:read"
+name: "monday"
+authUrl: "https://auth.monday.com/oauth2/authorize"
+tokenUrl: "https://auth.monday.com/oauth2/token"
+userInfoUrl: ""
+scopes:
+  "Read general information about the account": "account:read"
+authTokenRequestUrlencoded: true

@@ -1,17 +1,20 @@
 import * as path from "path";
+import * as crypto from "crypto";
 import fs from "fs";
 import { load } from "js-yaml";
 import { v4 as uuidv4 } from "uuid";
 import { getSession } from "./backend.cookie";
 import { redirect } from "@remix-run/node";
 import {
+  getApp,
   getFromRedis,
   saveAppForUser,
   saveAppsForOrg,
   saveInRedis,
 } from "./backend.redis";
-import { ServiceConfig } from "./types";
+import { ServiceConfig, App } from "./types";
 import { z } from "zod";
+import { URLSearchParams } from "url";
 
 export function readYaml(filePath: string) {
   const absoulutePath = path.join(...[process.cwd(), "/app", filePath]);
@@ -25,60 +28,85 @@ export function getAuthUrl(opts: {
   clientId: string;
   redirectUri: string;
   authUrl: string;
-  scopes: string;
+  userSelectedScope: string;
+  userInfoScope: string | undefined;
   appUuid: string;
   service: string;
   isCurlmate: boolean;
+  codeVerifier: string;
 }) {
+  const {
+    clientId,
+    redirectUri,
+    authUrl,
+    userSelectedScope,
+    userInfoScope,
+    appUuid,
+    service,
+    codeVerifier,
+  } = opts;
+
+  const codeChallenge = crypto
+    .createHash("sha256")
+    .update(codeVerifier)
+    .digest("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
   const params = new URLSearchParams({
-    client_id: opts.clientId,
+    client_id: clientId,
     response_type: "code",
-    redirect_uri: opts.redirectUri,
-    state: `${opts.appUuid}:${opts.service}`,
+    redirect_uri: redirectUri,
+    state: `${appUuid}:${service}`,
     access_type: "offline",
+    code_challenge: codeChallenge,
+    code_challenge_method: "S256",
   });
 
-  const serviceConfig = readYaml(`/oauth/${opts.service}.yaml`);
+  const serviceConfig = readYaml(`/oauth/${service}.yaml`);
   const scope = getScopeForService({
-    serviceConfig,
-    scope: opts.scopes,
+    userInfoScope,
+    userSelectedScope,
   });
 
   scope && params.set("scope", scope);
 
-  getAdditionalParamsForService({ serviceConfig, params });
+  getAdditionalAuthUrlParamsForService({ serviceConfig, params });
 
-  const authUrl = `${opts.authUrl}?${params.toString()}`;
-
-  return authUrl;
+  return `${authUrl}?${params.toString()}`;
 }
 
 export async function exchangeAuthCodeForToken(opts: {
+  appUuid: string;
   authCode: string;
-  clientId: string;
-  clientSecret: string;
-  tokenUrl: string;
-  redirectUri: string;
   service: string;
 }) {
-  const { service, authCode, clientId, clientSecret, tokenUrl, redirectUri } =
-    opts;
+  const { appUuid, service, authCode } = opts;
+
+  const appData = await getApp({ appUuid, service });
+  if (!appData) {
+    throw new Error("App not found");
+  }
+  const {
+    clientId,
+    clientSecret,
+    redirectUri,
+    tokenUrl,
+    codeVerifier,
+    authTokenRequestUrlencoded,
+  } = appData;
+
   const params = new URLSearchParams();
-  getAuthTokenParamsForService({
-    service,
-    authCode,
-    clientId,
-    clientSecret,
-    redirectUri,
-    params,
-  });
+
   const requestOptions = getRequestOptionsForService({
-    service,
     authCode,
     clientId,
     clientSecret,
     redirectUri,
+    codeVerifier,
     params,
+    authTokenRequestUrlencoded,
   });
 
   const response = await fetch(tokenUrl, requestOptions);
@@ -97,9 +125,7 @@ export async function configureApp(opts: {
   clientId: string;
   clientSecret: string;
   redirectUri: string;
-  scopes: string;
-  authUrl: string;
-  tokenUrl: string;
+  userSelectedScope: string;
   service: string;
   origin: string;
   orgKey: string | undefined;
@@ -110,9 +136,7 @@ export async function configureApp(opts: {
     clientId,
     clientSecret,
     redirectUri,
-    scopes,
-    authUrl,
-    tokenUrl,
+    userSelectedScope,
     service,
     origin,
     orgKey,
@@ -122,19 +146,36 @@ export async function configureApp(opts: {
 
   const appUuid = uuidv4();
 
+  const serviceConfig = readYaml(`/oauth/${service}.yaml`);
+  const {
+    authUrl,
+    tokenUrl,
+    userInfoScope,
+    authTokenRequestUrlencoded,
+    userInfoUrl,
+  } = serviceConfig;
+
   const curlmateCID =
     process.env[`CURLMATE_${service.toUpperCase().replace(/-/g, "_")}_CID`];
   if (!curlmateCID && isCurlmate) {
     throw new Error("Curlmate Client ID missing");
   }
+
+  const CID = !isCurlmate ? clientId : curlmateCID!;
+
+  //always implement PKCE
+  const codeVerifier = crypto.randomBytes(24).toString("hex");
+
   const appAuthUrl = getAuthUrl({
-    clientId: !isCurlmate ? clientId : curlmateCID!,
+    clientId: CID,
     redirectUri,
     authUrl,
-    scopes,
+    userSelectedScope,
+    userInfoScope,
     appUuid,
     service,
     isCurlmate,
+    codeVerifier,
   });
 
   const appKey = `app:${appUuid}:${service}`;
@@ -150,16 +191,21 @@ export async function configureApp(opts: {
     throw new Error("Curlmate Client Secret Missing");
   }
 
-  const value = {
-    clientId: !isCurlmate ? clientId : curlmateCID,
-    clientSecret: !isCurlmate ? clientSecret : curlmateCSEC,
+  const CSEC = !isCurlmate ? clientSecret : curlmateCSEC!;
+
+  const value: z.infer<typeof App> = {
+    clientId: CID,
+    clientSecret: CSEC,
     redirectUri,
-    scopes,
+    userSelectedScope,
     appAuthUrl,
     tokenUrl,
     service,
     tokens: [],
     custAuthUrl: `${origin}/oauth/${service}/${appUuid}`,
+    codeVerifier,
+    authTokenRequestUrlencoded,
+    userInfoUrl,
   };
 
   await saveInRedis({ key: appKey, value, service });
@@ -210,40 +256,44 @@ export async function requireOrg(request: Request): Promise<string> {
 }
 
 export function getScopeForService(opts: {
-  serviceConfig: z.infer<typeof ServiceConfig>;
-  scope: string;
+  userInfoScope: string | undefined;
+  userSelectedScope: string;
 }) {
-  const { serviceConfig, scope } = opts;
+  const { userInfoScope, userSelectedScope } = opts;
 
-  const scopes = scope ? [scope] : [];
-
-  const { userInfoScope } = serviceConfig;
+  const scopes = userSelectedScope ? [userSelectedScope] : [];
 
   userInfoScope && scopes.push(userInfoScope);
 
   return scopes.join(" ");
 }
 
-export function getAdditionalParamsForService(opts: {
+export function getAdditionalAuthUrlParamsForService(opts: {
   serviceConfig: z.infer<typeof ServiceConfig>;
   params: URLSearchParams;
 }) {
   const { serviceConfig, params } = opts;
 
-  const { additionalRequired } = serviceConfig;
+  const { additionalRequiredAuthUrlParams } = serviceConfig;
 
-  additionalRequired &&
-    Object.entries(additionalRequired).forEach(([key, value]) => {
+  additionalRequiredAuthUrlParams &&
+    Object.entries(additionalRequiredAuthUrlParams).forEach(([key, value]) => {
       params.set(key, value);
     });
 }
 
 export async function getUserInfo(opts: {
-  serviceConfig: z.infer<typeof ServiceConfig>;
+  appUuid: string;
+  service: string;
   accessToken: string;
 }) {
-  const { serviceConfig, accessToken } = opts;
-  const userInfoUrl = serviceConfig.userInfoUrl;
+  const { appUuid, service, accessToken } = opts;
+
+  const appData = await getApp({ appUuid, service });
+  if (!appData) {
+    throw new Error("App not found");
+  }
+  const { userInfoUrl, additionalHeaders } = appData;
 
   if (!userInfoUrl) {
     return {};
@@ -255,7 +305,7 @@ export async function getUserInfo(opts: {
       Accept: "application/json",
     },
   };
-  const { additionalHeaders } = serviceConfig;
+
   requestOptions.headers = { ...requestOptions.headers, ...additionalHeaders };
   const userInfoRes = await fetch(userInfoUrl, requestOptions);
 
@@ -263,49 +313,36 @@ export async function getUserInfo(opts: {
     ? await userInfoRes.text()
     : await userInfoRes.json();
 
-  const { name } = serviceConfig;
-  if (name === "google-drive") {
-    const email = userInfo.email;
-    return email;
-  }
-
-  if (name === "notion") {
-    const email = userInfo.bot.owner.user.person.email;
-    return email;
-  }
   return userInfo;
 }
 
-function getAuthTokenParamsForService(opts: {
-  service: string;
+function getRequestOptionsForService(opts: {
   authCode: string;
   clientId: string;
   clientSecret: string;
   redirectUri: string;
+  codeVerifier: string;
   params: URLSearchParams;
-}) {
-  const { service, authCode, clientId, clientSecret, redirectUri, params } =
-    opts;
-  if (service !== "notion") {
+  authTokenRequestUrlencoded: boolean;
+}): RequestInit {
+  const {
+    authCode,
+    clientId,
+    clientSecret,
+    redirectUri,
+    codeVerifier,
+    params,
+    authTokenRequestUrlencoded,
+  } = opts;
+
+  if (authTokenRequestUrlencoded) {
     params.append("grant_type", "authorization_code");
     params.append("code", authCode);
     params.append("redirect_uri", redirectUri);
     params.append("client_id", clientId);
     params.append("client_secret", clientSecret);
-  }
-}
+    params.append("code_verifier", codeVerifier);
 
-function getRequestOptionsForService(opts: {
-  service: string;
-  authCode: string;
-  clientId: string;
-  clientSecret: string;
-  redirectUri: string;
-  params: URLSearchParams;
-}): RequestInit {
-  const { service, authCode, clientId, clientSecret, redirectUri, params } =
-    opts;
-  if (service === "google-drive") {
     return {
       method: "POST",
       headers: {
@@ -314,9 +351,7 @@ function getRequestOptionsForService(opts: {
       },
       body: params.toString(),
     };
-  }
-
-  if (service === "notion") {
+  } else {
     const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
     return {
       method: "POST",
@@ -332,13 +367,33 @@ function getRequestOptionsForService(opts: {
       }),
     };
   }
+}
 
-  return {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/json",
-    },
-    body: params.toString(),
-  };
+export async function saveToken(
+  appUuid: string,
+  service: string,
+  user: Record<string, string>,
+  tokenResponse: Record<string, string>,
+) {
+  const tokenUuid = uuidv4();
+  const tokenId = `token:${tokenUuid}`;
+  await saveInRedis({
+    key: tokenId,
+    value: { user, tokenResponse },
+    service,
+  });
+
+  const appData = await getApp({ appUuid, service });
+  if (!appData) {
+    throw new Error("App not found");
+  }
+
+  appData.tokens.push(tokenId);
+  await saveInRedis({
+    key: `app:${appUuid}:${service}`,
+    value: appData,
+    service,
+  });
+
+  return tokenUuid;
 }

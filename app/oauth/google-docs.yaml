@@ -1,12 +1,12 @@
-  name: "google-docs"
-  authUrl: "https://accounts.google.com/o/oauth2/v2/auth"
-  tokenUrl: "https://oauth2.googleapis.com/token"
-  userInfoUrl: "https://www.googleapis.com/oauth2/v3/userinfo"
-  userInfoScope: "https://www.googleapis.com/auth/userinfo.email"
-  scopes:
-    "See, edit, create, and delete all your Google Docs documents.": "https://www.googleapis.com/auth/documents"
-    "See all your Google Docs documents.": "https://www.googleapis.com/auth/documents.readonly"
-    "See, edit, create, and delete only the specific Google Drive files you use with this app.": "https://www.googleapis.com/auth/drive.file"
-    "See, edit, create, and delete all of your Google Drive files.": "https://www.googleapis.com/auth/drive"
-    "See and download all your Google Drive files.": "https://www.googleapis.com/auth/drive.readonly"
-  
+name: "google-docs"
+authUrl: "https://accounts.google.com/o/oauth2/v2/auth"
+tokenUrl: "https://oauth2.googleapis.com/token"
+userInfoUrl: "https://www.googleapis.com/oauth2/v3/userinfo"
+userInfoScope: "https://www.googleapis.com/auth/userinfo.email"
+scopes:
+  "See, edit, create, and delete all your Google Docs documents.": "https://www.googleapis.com/auth/documents"
+  "See all your Google Docs documents.": "https://www.googleapis.com/auth/documents.readonly"
+  "See, edit, create, and delete only the specific Google Drive files you use with this app.": "https://www.googleapis.com/auth/drive.file"
+  "See, edit, create, and delete all of your Google Drive files.": "https://www.googleapis.com/auth/drive"
+  "See and download all your Google Drive files.": "https://www.googleapis.com/auth/drive.readonly"
+authTokenRequestUrlencoded: true

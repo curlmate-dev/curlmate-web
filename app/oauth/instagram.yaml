@@ -1,6 +1,7 @@
-  name: "instagram"
-  authUrl: "https://www.facebook.com/v23.0/dialog/oauth"
-  tokenUrl: "https://graph.facebook.com/v23.0/oauth/access_token"
-  userInfoUrl: "https://graph.facebook.com/me"
-  scopes:
-    "instagram_basic": "instagram_basic"
+name: "instagram"
+authUrl: "https://www.facebook.com/v23.0/dialog/oauth"
+tokenUrl: "https://graph.facebook.com/v23.0/oauth/access_token"
+userInfoUrl: "https://graph.facebook.com/me"
+scopes:
+  "instagram_basic": "instagram_basic"
+authTokenRequestUrlencoded: true
