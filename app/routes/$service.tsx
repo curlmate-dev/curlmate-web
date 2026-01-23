@@ -46,10 +46,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
   const clientId = formData.get("clientId")?.toString();
   const clientSecret = formData.get("clientSecret")?.toString();
-  const scopes = formData.get("scopes")?.toString() ?? "";
+  const userSelectedScope = formData.get("userSelectedScope")?.toString() ?? "";
   const redirectUri = formData.get("redirectUri")?.toString();
-  const authUrl = formData.get("authUrl")?.toString();
-  const tokenUrl = formData.get("tokenUrl")?.toString();
   const isCurlmate = formData.get("isCurlmate") === "on";
 
   const fields = {
@@ -75,9 +73,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     clientId,
     clientSecret,
     redirectUri,
-    scopes,
-    authUrl,
-    tokenUrl,
+    userSelectedScope,
     service,
     origin,
     orgKey,
@@ -273,7 +269,7 @@ export default function ServicePage() {
             <label className="flex flex-col gap-y-1">
               Scopes:
               <select
-                name="scopes"
+                name="userSelectedScope"
                 className="border border-gray-200 dark:border-gray-700 rounded-none bg-white h-10"
               >
                 {Object.keys(oauthConfig.scopes).map((scope) => (

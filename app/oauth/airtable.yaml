@@ -2,9 +2,11 @@ name: "airtable"
 authUrl: "https://airtable.com/oauth2/v1/authorize"
 tokenUrl: "https://airtable.com/oauth2/v1/token"
 userInfoUrl: "https://api.airtable.com/v0/meta/whoami"
+userInfoScope: "user.email:read"
 scopes:
   "data.records:read": "data.records:read"
   "data.records:write": "data.records:write"
   "schema.bases:read": "schema.bases:read"
   "schema.bases:write": "schema.bases:write"
   "user.email:read": "user.email:read"
+authTokenRequestUrlencoded: true
