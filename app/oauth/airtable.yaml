@@ -10,3 +10,4 @@ scopes:
   "schema.bases:write": "schema.bases:write"
   "user.email:read": "user.email:read"
 authTokenRequestUrlencoded: true
+authTokenRequestParamsWithoutCSEC: true

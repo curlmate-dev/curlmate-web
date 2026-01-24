@@ -95,9 +95,8 @@ export async function exchangeAuthCodeForToken(opts: {
     tokenUrl,
     codeVerifier,
     authTokenRequestUrlencoded,
+    authTokenRequestParamsWithoutCSEC,
   } = appData;
-
-  const params = new URLSearchParams();
 
   const requestOptions = getRequestOptionsForService({
     authCode,
@@ -105,8 +104,8 @@ export async function exchangeAuthCodeForToken(opts: {
     clientSecret,
     redirectUri,
     codeVerifier,
-    params,
     authTokenRequestUrlencoded,
+    authTokenRequestParamsWithoutCSEC,
   });
 
   const response = await fetch(tokenUrl, requestOptions);
@@ -153,6 +152,7 @@ export async function configureApp(opts: {
     userInfoScope,
     authTokenRequestUrlencoded,
     userInfoUrl,
+    authTokenRequestParamsWithoutCSEC,
   } = serviceConfig;
 
   const curlmateCID =
@@ -206,6 +206,7 @@ export async function configureApp(opts: {
     codeVerifier,
     authTokenRequestUrlencoded,
     userInfoUrl,
+    authTokenRequestParamsWithoutCSEC,
   };
 
   await saveInRedis({ key: appKey, value, service });
@@ -322,8 +323,8 @@ function getRequestOptionsForService(opts: {
   clientSecret: string;
   redirectUri: string;
   codeVerifier: string;
-  params: URLSearchParams;
   authTokenRequestUrlencoded: boolean;
+  authTokenRequestParamsWithoutCSEC: boolean | undefined;
 }): RequestInit {
   const {
     authCode,
@@ -331,24 +332,30 @@ function getRequestOptionsForService(opts: {
     clientSecret,
     redirectUri,
     codeVerifier,
-    params,
     authTokenRequestUrlencoded,
+    authTokenRequestParamsWithoutCSEC,
   } = opts;
 
   if (authTokenRequestUrlencoded) {
+    const params = new URLSearchParams();
+    const headers: RequestInit["headers"] = {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    };
     params.append("grant_type", "authorization_code");
     params.append("code", authCode);
     params.append("redirect_uri", redirectUri);
     params.append("client_id", clientId);
     params.append("client_secret", clientSecret);
     params.append("code_verifier", codeVerifier);
-
+    if (authTokenRequestParamsWithoutCSEC) {
+      params.delete("client_secret");
+      headers["Authorization"] =
+        `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`;
+    }
     return {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-      },
+      headers,
       body: params.toString(),
     };
   } else {

@@ -29,6 +29,7 @@ export const App = z.object({
   authTokenRequestUrlencoded: z.boolean(),
   userInfoUrl: z.string().optional(),
   additionalHeaders: z.record(z.string(), z.string()).optional(),
+  authTokenRequestParamsWithoutCSEC: z.boolean().optional(),
 });
 
 export const ServiceConfig = z.object({
@@ -41,6 +42,7 @@ export const ServiceConfig = z.object({
   additionalRequiredAuthUrlParams: z.record(z.string(), z.string()).optional(),
   additionalHeaders: z.record(z.string(), z.string()).optional(),
   authTokenRequestUrlencoded: z.boolean(),
+  authTokenRequestParamsWithoutCSEC: z.boolean().optional(),
 });
 
 const OauthConfig = z.object({
