@@ -153,6 +153,7 @@ export async function configureApp(opts: {
     authTokenRequestUrlencoded,
     userInfoUrl,
     authTokenRequestParamsWithoutCSEC,
+    additionalHeaders,
   } = serviceConfig;
 
   const curlmateCID =
@@ -207,6 +208,7 @@ export async function configureApp(opts: {
     authTokenRequestUrlencoded,
     userInfoUrl,
     authTokenRequestParamsWithoutCSEC,
+    additionalHeaders,
   };
 
   await saveInRedis({ key: appKey, value, service });
