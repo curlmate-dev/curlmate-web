@@ -7,3 +7,4 @@ scopes:
   "user:email": "user:email"
   "user": "user"
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: true

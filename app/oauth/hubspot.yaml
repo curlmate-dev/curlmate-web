@@ -5,3 +5,4 @@ userInfoUrl: ""
 scopes:
   "crm.objects.contacts.read": "crm.objects.contacts.read"
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: true

@@ -9,3 +9,4 @@ scopes:
   "Read user profiles and groups": "read:jira-user"
   "To get refresh tokens": "offline_access"
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: true

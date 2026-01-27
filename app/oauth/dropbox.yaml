@@ -9,4 +9,5 @@ scopes:
   "files.metadata.write": "files.metadata.write"
   "files.metadata.read": "files.metadata.read"
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: true
     

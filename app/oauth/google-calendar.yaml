@@ -12,3 +12,4 @@ scopes:
   "Manage access control lists (ACLs) of calendars.": "https://www.googleapis.com/auth/calendar.acls"
   "Read-only access to calendar access control lists (ACLs).": "https://www.googleapis.com/auth/calendar.acls.readonly"
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: false

@@ -12,7 +12,7 @@ import {
   saveAppsForOrg,
   saveInRedis,
 } from "./backend.redis";
-import { ServiceConfig, App } from "./types";
+import { ServiceConfig, App, zAccessToken } from "./types";
 import { z } from "zod";
 import { URLSearchParams } from "url";
 
@@ -154,6 +154,7 @@ export async function configureApp(opts: {
     userInfoUrl,
     authTokenRequestParamsWithoutCSEC,
     additionalHeaders,
+    refreshTokenAuthHeader,
   } = serviceConfig;
 
   const curlmateCID =
@@ -209,6 +210,7 @@ export async function configureApp(opts: {
     userInfoUrl,
     authTokenRequestParamsWithoutCSEC,
     additionalHeaders,
+    refreshTokenAuthHeader,
   };
 
   await saveInRedis({ key: appKey, value, service });
@@ -234,19 +236,76 @@ export async function getRefreshToken(opts: {
     throw new Error("Missing service name");
   }
 
-  const token = await getFromRedis({ key: `token:${tokenUuid}`, service });
+  const res = await getFromRedis({ key: `token:${tokenUuid}`, service });
 
-  const app = await getFromRedis({ key: `app:${appUuid}`, service });
+  const { expiresAt, refreshToken, user } = zAccessToken.parse(res);
 
-  const response = await fetch(refreshTokenUrl, {
+  const expired = expiresAt
+    ? new Date(expiresAt).getTime() < new Date().getTime()
+    : undefined;
+
+  if (!refreshToken) {
+    return Response.json({
+      message: "No refresh token found",
+      tokenUuid,
+      service,
+    });
+  }
+
+  if (!expired) {
+    return Response.json({
+      message: "Token is not expired",
+      tokenUuid,
+      service,
+    });
+  }
+
+  const app = await getApp({ appUuid, service });
+  if (!app) {
+    throw new Error("App not found");
+  }
+  const { tokenUrl, clientId, clientSecret, refreshTokenAuthHeader } = app;
+
+  const params = new URLSearchParams();
+  params.append("refresh_token", refreshToken);
+  params.append("grant_type", "refresh_token");
+
+  const headers: RequestInit["headers"] = {
+    "Content-Type": "application/x-www-form-urlencoded",
+  };
+
+  if (refreshTokenAuthHeader) {
+    const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+    headers["Authorization"] = `Basic ${auth}`;
+  } else {
+    params.append("client_id", clientId);
+  }
+
+  const response = await fetch(tokenUrl, {
     method: "POST",
-    headers: {
-      Authorization: `Basic `,
+    headers,
+    body: params.toString(),
+  });
+  console.log(response);
+  const rawToken = await response.json();
+
+  await saveInRedis({
+    key: `token:${tokenUuid}`,
+    value: {
+      expiresAt: new Date(Date.now() + rawToken.expires_in * 1000).getTime(),
+      refreshToken,
+      accessToken: rawToken.access_token,
+      tokenResposne: rawToken,
+      user,
     },
+    service,
   });
 
-  const refreshToken = await response.json();
-  return refreshToken;
+  return Response.json({
+    message: "Refresh token saved successfully",
+    tokenUuid,
+    service,
+  });
 }
 
 export async function requireOrg(request: Request): Promise<string> {
@@ -382,13 +441,25 @@ export async function saveToken(
   appUuid: string,
   service: string,
   user: Record<string, string>,
-  tokenResponse: Record<string, string>,
+  tokenResponse: Record<string, unknown>,
 ) {
   const tokenUuid = uuidv4();
   const tokenId = `token:${tokenUuid}`;
   await saveInRedis({
     key: tokenId,
-    value: { user, tokenResponse },
+    value: {
+      accessToken: tokenResponse.access_token,
+      refreshToken: tokenResponse.refresh_token
+        ? tokenResponse.refresh_token
+        : undefined,
+      expiresAt: tokenResponse.expires_in
+        ? new Date(
+            Date.now() + Number(tokenResponse.expires_in) * 1000,
+          ).getTime()
+        : undefined,
+      user,
+      tokenResponse,
+    },
     service,
   });
 

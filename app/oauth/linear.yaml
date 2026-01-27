@@ -10,3 +10,4 @@ scopes:
   "timeSchedule:write": "timeSchedule:write"
   "admin": "admin"
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: true

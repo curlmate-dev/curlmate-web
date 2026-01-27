@@ -30,6 +30,7 @@ export const App = z.object({
   userInfoUrl: z.string().optional(),
   additionalHeaders: z.record(z.string(), z.string()).optional(),
   authTokenRequestParamsWithoutCSEC: z.boolean().optional(),
+  refreshTokenAuthHeader: z.boolean(),
 });
 
 export const ServiceConfig = z.object({
@@ -43,6 +44,7 @@ export const ServiceConfig = z.object({
   additionalHeaders: z.record(z.string(), z.string()).optional(),
   authTokenRequestUrlencoded: z.boolean(),
   authTokenRequestParamsWithoutCSEC: z.boolean().optional(),
+  refreshTokenAuthHeader: z.boolean(),
 });
 
 const OauthConfig = z.object({
@@ -56,4 +58,12 @@ export type OAuthConfig = z.infer<typeof OauthConfig>;
 
 export const SessionUser = z.object({
   apps: z.array(z.string()),
+});
+
+export const zAccessToken = z.object({
+  accessToken: z.string(),
+  refreshToken: z.string().optional(),
+  expiresAt: z.number().optional(),
+  tokenResponse: z.record(z.string(), z.unknown()),
+  user: z.record(z.string(), z.unknown()),
 });
