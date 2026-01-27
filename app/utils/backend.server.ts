@@ -287,7 +287,14 @@ export async function getRefreshToken(opts: {
     headers,
     body: params.toString(),
   });
-  console.log(response);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error("Error refreshing token", {
+      cause: errorText,
+    });
+  }
+
   const rawToken = await response.json();
 
   await saveInRedis({
