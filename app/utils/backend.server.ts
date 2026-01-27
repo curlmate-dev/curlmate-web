@@ -279,6 +279,7 @@ export async function getRefreshToken(opts: {
     headers["Authorization"] = `Basic ${auth}`;
   } else {
     params.append("client_id", clientId);
+    params.append("client_secret", clientSecret);
   }
 
   const response = await fetch(tokenUrl, {
