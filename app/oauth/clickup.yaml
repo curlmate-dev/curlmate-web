@@ -5,3 +5,4 @@ userInfoUrl: "https://api.clickup.com/api/v2/user"
 scopes:
   "": ""
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: true

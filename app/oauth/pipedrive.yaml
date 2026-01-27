@@ -5,3 +5,4 @@ userInfoUrl: ""
 scopes:
   "": ""
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: true

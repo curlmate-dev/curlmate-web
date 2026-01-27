@@ -10,3 +10,4 @@ scopes:
   "See, edit, create, and delete all of your Google Drive files.": "https://www.googleapis.com/auth/drive"
   "See and download all your Google Drive files.": "https://www.googleapis.com/auth/drive.readonly"
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: false
