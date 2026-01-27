@@ -27,7 +27,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const tokenIds = app.tokens;
   const tokenPromises = tokenIds.map(async (tokenId) => {
     const token = await getFromRedis({ key: tokenId, service });
-    return { [tokenId]: token };
+    const tokenUuid = tokenId.split(":")[1];
+    return { [tokenUuid]: token };
   });
 
   const tokens = await Promise.all(tokenPromises);
@@ -196,23 +197,20 @@ export default function OauthAppPage() {
           </div>
           <div>
             {tokens.map((tokenObj, idx) => {
-              const [tokenId, token] = Object.entries(tokenObj)[0];
+              const [tokenUuid, token] = Object.entries(tokenObj)[0];
               return (
                 <div
-                  key={tokenId}
+                  key={tokenUuid}
                   className="bg-white border border-gray-300 rounded p-4 mb-4"
                 >
                   <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">
                     {JSON.stringify(token, null, 2)}
                   </div>
-                  <form
-                    method="post"
-                    action={`/refresh-token/${service}/${appUuid}/${tokenId}`}
-                  >
+                  <a href={`/refresh-token/${service}/${appUuid}/${tokenUuid}`}>
                     <button className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded mt-2">
                       Refresh Token
                     </button>
-                  </form>
+                  </a>
                 </div>
               );
             })}

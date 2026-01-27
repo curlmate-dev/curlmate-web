@@ -5,3 +5,4 @@ userInfoUrl: "https://graph.facebook.com/me"
 scopes:
   "instagram_basic": "instagram_basic"
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: true

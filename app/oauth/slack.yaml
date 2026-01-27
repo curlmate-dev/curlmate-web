@@ -7,3 +7,4 @@
     "channels:read": "channels:read"
   userInfoScope: "users:read"
   authTokenRequestUrlencoded: true
+  refreshTokenAuthHeader: true

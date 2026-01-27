@@ -5,3 +5,4 @@ userInfoUrl: ""
 scopes:
   "Read general information about the account": "account:read"
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: true

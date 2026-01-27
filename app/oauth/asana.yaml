@@ -12,3 +12,4 @@ scopes:
   "projects:write": "projects:write"
   "projects:delete": "projects:delete"
 authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: true

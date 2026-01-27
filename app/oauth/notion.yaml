@@ -9,3 +9,4 @@ additionalRequiredAuthUrlParams:
 additionalHeaders:
   "Notion-Version": "2022-06-28"
 authTokenRequestUrlencoded: false
+refreshTokenAuthHeader: true

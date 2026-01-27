@@ -11,3 +11,4 @@ scopes:
   "user.email:read": "user.email:read"
 authTokenRequestUrlencoded: true
 authTokenRequestParamsWithoutCSEC: true
+refreshTokenAuthHeader: true
