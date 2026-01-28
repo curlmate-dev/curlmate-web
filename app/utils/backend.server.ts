@@ -297,15 +297,17 @@ export async function getRefreshToken(opts: {
 
   const rawToken = await response.json();
 
+  const value: z.infer<typeof zAccessToken> = {
+    expiresAt: new Date(Date.now() + rawToken.expires_in * 1000).getTime(),
+    refreshToken,
+    accessToken: rawToken.access_token,
+    tokenResponse: rawToken,
+    user,
+  };
+
   await saveInRedis({
     key: `token:${tokenUuid}`,
-    value: {
-      expiresAt: new Date(Date.now() + rawToken.expires_in * 1000).getTime(),
-      refreshToken,
-      accessToken: rawToken.access_token,
-      tokenResposne: rawToken,
-      user,
-    },
+    value,
     service,
   });
 
