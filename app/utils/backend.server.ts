@@ -222,7 +222,7 @@ export async function getRefreshToken(opts: {
   appUuid: string;
   tokenUuid: string;
   service: string;
-}) {
+}): Promise<{ accessToken: string }> {
   const { appUuid, tokenUuid, service } = opts;
   if (!appUuid) {
     throw new Error("Missing App Id");
@@ -238,26 +238,17 @@ export async function getRefreshToken(opts: {
 
   const res = await getFromRedis({ key: `token:${tokenUuid}`, service });
 
-  const { expiresAt, refreshToken, user } = zAccessToken.parse(res);
+  const { expiresAt, accessToken, refreshToken, user } =
+    zAccessToken.parse(res);
 
   const expired = expiresAt
     ? new Date(expiresAt).getTime() < new Date().getTime()
     : undefined;
 
-  if (!refreshToken) {
-    return Response.json({
-      message: "No refresh token found",
-      tokenUuid,
-      service,
-    });
-  }
-
-  if (!expired) {
-    return Response.json({
-      message: "Token is not expired",
-      tokenUuid,
-      service,
-    });
+  if (!refreshToken || !expired) {
+    return {
+      accessToken,
+    };
   }
 
   const app = await getApp({ appUuid, service });
@@ -311,11 +302,9 @@ export async function getRefreshToken(opts: {
     service,
   });
 
-  return Response.json({
-    message: "Refresh token saved successfully",
-    tokenUuid,
-    service,
-  });
+  return {
+    accessToken: value.accessToken,
+  };
 }
 
 export async function requireOrg(request: Request): Promise<string> {

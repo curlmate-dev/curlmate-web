@@ -1,58 +1,75 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { getFromRedis } from "~/utils/backend.redis";
+import { verifyJwt } from "~/utils/backend.jwt";
+import { getApp, getSessionUser } from "~/utils/backend.redis";
+import { getRefreshToken } from "~/utils/backend.server";
 
-export const loader = async({ request, params }: LoaderFunctionArgs) => {
-    const url = new URL(request.url);
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const authHeader = request.headers.get("Authorization");
+  const jwt = authHeader?.split(" ")[1];
+  if (!jwt) {
+    return Response.json(
+      {
+        error: "No jwt found in Authorization header",
+      },
+      {
+        status: 400,
+      },
+    );
+  }
 
-    const tokenId = url.searchParams.get("tokenId");
+  try {
+    const decodedValue = verifyJwt(jwt);
+    if (!decodedValue) {
+      return Response.json({
+        error: "JWT could not be decoded",
+      });
+    }
+    const { sub } = decodedValue;
 
-    if(!tokenId) {
-        return Response.json({
-            error: "Token Id missing"
-        }, 
-        {
-            status: 400,
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
+    const connection = request.headers.get("x-connection");
+    if (!connection) {
+      return Response.json("x-connection header missing");
     }
 
-    const service = url.searchParams.get("service");
+    const [appUuid, tokenUuid, service] = connection.split(":");
+    const user = await getSessionUser(`user:${sub}`);
 
-    if(!service) {
-        return Response.json({
-            error: "OAuth service missing"
-        }, 
-        {
-            status: 400,
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
+    if (!user) {
+      return Response.json({
+        error: "User not found",
+      });
+    }
+    const { apps } = user;
+    const appKey = `app:${appUuid}:${service}`;
+    const idx1 = apps?.indexOf(appKey);
+    if (idx1 === -1) {
+      return Response.json({
+        error: "app not found",
+      });
     }
 
-    const token = await getFromRedis({key: tokenId, service});
-
-    if(!token) {
-        return Response.json({
-            error: "Token not found"
-        }, {
-            status: 404,
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
+    const app = await getApp({ appUuid, service });
+    if (!app) {
+      return Response.json({
+        error: "App not found",
+      });
+    }
+    const tokenKey = `token:${tokenUuid}`;
+    const idx2 = app.tokens.indexOf(tokenKey);
+    if (idx2 === -1) {
+      return Response.json({
+        error: "Access token not found",
+      });
     }
 
+    const res = await getRefreshToken({ appUuid, tokenUuid, service });
     return Response.json({
-        ...token
-    },
-    {
-        status: 200,
-        headers: {
-            "Content-Type": "application/json"
-        }
-    } 
-    )
-}
+      accessToken: res.accessToken,
+    });
+  } catch (error: unknown) {
+    const err = error as Error;
+    return Response.json({
+      error: err.message,
+    });
+  }
+};
