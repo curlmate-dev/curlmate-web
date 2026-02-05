@@ -45,6 +45,27 @@ export function verifyJwt(token: string): Record<string, unknown> | null {
   }
 }
 
+export function createJwt(userId: string): string | null {
+  const secret = process.env.CM_JWT_SECRET?.trim();
+
+  if (!secret) {
+    return null;
+  }
+
+  const payload = {
+    sub: userId,
+  };
+
+  try {
+    return jwt.sign(payload, secret, {
+      algorithm: "HS256",
+      expiresIn: 60 * 60 * 24 * 7,
+    });
+  } catch (err) {
+    return null;
+  }
+}
+
 // export function createJWTCredentials({
 //   config,
 //   provider,

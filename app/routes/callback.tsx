@@ -8,23 +8,23 @@ import {
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const authCode = url.searchParams.get("code");
-  const [appUuid, service] = url.searchParams.get("state")?.split(":") ?? [];
+  const [appHash, service] = url.searchParams.get("state")?.split(":") ?? [];
 
   if (authCode) {
     try {
       const tokenResponse = await exchangeAuthCodeForToken({
-        appUuid,
+        appHash,
         authCode,
         service,
       });
 
       const user = await getUserInfo({
-        appUuid,
+        appHash,
         service,
         accessToken: tokenResponse.access_token,
       });
 
-      const tokenUuid = await saveToken(appUuid, service, user, tokenResponse);
+      const tokenUuid = await saveToken(appHash, service, user, tokenResponse);
 
       return redirect(`/success/${service}/${tokenUuid}`);
     } catch (error: unknown) {
