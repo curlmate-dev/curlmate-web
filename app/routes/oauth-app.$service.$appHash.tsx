@@ -10,13 +10,13 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   const org = orgKey ? await getOrg(orgKey) : undefined;
 
-  const { service, appUuid } = params;
+  const { service, appHash } = params;
 
-  if (!service || !appUuid) {
+  if (!service || !appHash) {
     throw redirect("/404");
   }
 
-  const app = await getApp({ appUuid, service });
+  const app = await getApp({ appHash, service });
 
   if (!app) {
     throw new Error("App not found");
@@ -38,12 +38,12 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     app: safeApp,
     tokens,
     service,
-    appUuid,
+    appHash,
   });
 };
 
 export default function OauthAppPage() {
-  const { org, app, tokens, service, appUuid } = useLoaderData<typeof loader>();
+  const { org, app, tokens, service, appHash } = useLoaderData<typeof loader>();
   const [isOpen, setIsOpen] = useState(false);
   return (
     <main className="min-h-screen bg-[#f5f5dc] text-[#222] font-mono">
@@ -206,7 +206,7 @@ export default function OauthAppPage() {
                   <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">
                     {JSON.stringify(token, null, 2)}
                   </div>
-                  <a href={`/refresh-token/${service}/${appUuid}/${tokenUuid}`}>
+                  <a href={`/refresh-token/${service}/${appHash}/${tokenUuid}`}>
                     <button className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded mt-2">
                       Refresh Token
                     </button>

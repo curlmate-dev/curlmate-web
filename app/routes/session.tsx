@@ -10,8 +10,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const appKeys = sessionUser?.apps || [];
 
   const appPromises = appKeys.map(async (appKey) => {
-    const [_, appUuid, service] = appKey.split(":");
-    const app = await getApp({ appUuid, service });
+    const [, appHash, service] = appKey.split(":");
+    const app = await getApp({ appHash, service });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { clientSecret, appAuthUrl, ...safeApp } = app || {};
     return {

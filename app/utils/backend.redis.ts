@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import { App, GitUser, Org, SessionUser } from "./types";
+import { App, GitUser, Org, SessionUser, zApiKey } from "./types";
 import { z } from "zod";
 import { encrypt, decrypt } from "./backend.encryption";
 
@@ -60,9 +60,6 @@ export async function saveOrgInRedis(data: object) {
           email: org.email,
           apps: [],
         }),
-        {
-          ex: 86400,
-        },
       );
     }
     return redisKey;
@@ -85,7 +82,19 @@ export async function getAppsForOrg(orgKey: string): Promise<string[] | null> {
   return apps;
 }
 
-export async function saveAppsForOrg(
+export async function getAppsForUser(userId: string): Promise<string[] | null> {
+  const rawUser = await redis.get(userId);
+
+  if (!rawUser) {
+    return null;
+  }
+
+  const user = SessionUser.parse(rawUser);
+  const apps = user.apps;
+  return apps;
+}
+
+export async function LinkAppToOrg(
   orgKey: string,
   appKey: string,
 ): Promise<z.infer<typeof Org> | null> {
@@ -96,9 +105,11 @@ export async function saveAppsForOrg(
   }
 
   const org = Org.parse(rawOrg);
-  org.apps.push(appKey);
-  await redis.set(orgKey, org);
-
+  const idx = org.apps.indexOf(appKey);
+  if (idx === -1) {
+    org.apps.push(appKey);
+    await redis.set(orgKey, org);
+  }
   return org;
 }
 
@@ -116,11 +127,11 @@ export async function getOrg(
 }
 
 export async function getApp(opts: {
-  appUuid: string;
+  appHash: string;
   service: string;
 }): Promise<z.infer<typeof App> | null> {
-  const { appUuid, service } = opts;
-  const rawApp = (await redis.get(`app:${appUuid}:${service}`)) as string;
+  const { appHash, service } = opts;
+  const rawApp = (await redis.get(`app:${appHash}:${service}`)) as string;
   if (!rawApp) {
     return null;
   }
@@ -134,27 +145,30 @@ export async function getApp(opts: {
   return app;
 }
 
-export async function saveAppForUser(opts: {
+export async function LinkAppToUser(opts: {
   userId: string;
   appKey: string;
-}): Promise<void> {
+}): Promise<z.infer<typeof SessionUser>> {
   const { userId, appKey } = opts;
   const rawUser = await redis.get(`user:${userId}`);
   if (!rawUser) {
-    await redis.set(
-      `user:${userId}`,
-      {
-        apps: [appKey],
-      },
-      {
-        ex: 43200,
-      },
-    );
-    return;
+    const user = {
+      apps: [appKey],
+    };
+
+    await redis.set(`user:${userId}`, user, {
+      ex: 604800,
+    });
+    return user;
   }
+
   const user = SessionUser.parse(rawUser);
-  user.apps.push(appKey);
-  await redis.set(`user:${userId}`, user);
+  const idx = user.apps.indexOf(appKey);
+  if (idx === -1) {
+    user.apps.push(appKey);
+    await redis.set(`user:${userId}`, user);
+  }
+  return user;
 }
 
 export async function getSessionUser(userId: string) {
@@ -166,4 +180,16 @@ export async function getSessionUser(userId: string) {
 
   const sessionUser = SessionUser.parse(rawUser);
   return sessionUser;
+}
+
+export async function getUserForApiKey(apiKey: string) {
+  console.log(apiKey);
+  const rawApiKey = await redis.get(apiKey);
+
+  if (!rawApiKey) {
+    return null;
+  }
+
+  const parsed = zApiKey.parse(rawApiKey);
+  return parsed;
 }

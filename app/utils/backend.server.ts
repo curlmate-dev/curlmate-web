@@ -8,13 +8,13 @@ import { redirect } from "@remix-run/node";
 import {
   getApp,
   getFromRedis,
-  saveAppForUser,
-  saveAppsForOrg,
+  LinkAppToOrg,
+  LinkAppToUser,
   saveInRedis,
 } from "./backend.redis";
 import { ServiceConfig, App, zAccessToken } from "./types";
-import { z } from "zod";
 import { URLSearchParams } from "url";
+import { z } from "zod";
 
 export function readYaml(filePath: string) {
   const absoulutePath = path.join(...[process.cwd(), "/app", filePath]);
@@ -30,7 +30,7 @@ export function getAuthUrl(opts: {
   authUrl: string;
   userSelectedScope: string;
   userInfoScope: string | undefined;
-  appUuid: string;
+  appHash: string;
   service: string;
   isCurlmate: boolean;
   codeVerifier: string;
@@ -41,7 +41,7 @@ export function getAuthUrl(opts: {
     authUrl,
     userSelectedScope,
     userInfoScope,
-    appUuid,
+    appHash,
     service,
     codeVerifier,
   } = opts;
@@ -58,7 +58,7 @@ export function getAuthUrl(opts: {
     client_id: clientId,
     response_type: "code",
     redirect_uri: redirectUri,
-    state: `${appUuid}:${service}`,
+    state: `${appHash}:${service}`,
     access_type: "offline",
     code_challenge: codeChallenge,
     code_challenge_method: "S256",
@@ -78,13 +78,13 @@ export function getAuthUrl(opts: {
 }
 
 export async function exchangeAuthCodeForToken(opts: {
-  appUuid: string;
+  appHash: string;
   authCode: string;
   service: string;
 }) {
-  const { appUuid, service, authCode } = opts;
+  const { appHash, service, authCode } = opts;
 
-  const appData = await getApp({ appUuid, service });
+  const appData = await getApp({ appHash, service });
   if (!appData) {
     throw new Error("App not found");
   }
@@ -142,9 +142,6 @@ export async function configureApp(opts: {
     userId,
     isCurlmate,
   } = opts;
-
-  const appUuid = uuidv4();
-
   const serviceConfig = readYaml(`/oauth/${service}.yaml`);
   const {
     authUrl,
@@ -165,27 +162,6 @@ export async function configureApp(opts: {
 
   const CID = !isCurlmate ? clientId : curlmateCID!;
 
-  //always implement PKCE
-  const codeVerifier = crypto.randomBytes(24).toString("hex");
-
-  const appAuthUrl = getAuthUrl({
-    clientId: CID,
-    redirectUri,
-    authUrl,
-    userSelectedScope,
-    userInfoScope,
-    appUuid,
-    service,
-    isCurlmate,
-    codeVerifier,
-  });
-
-  const appKey = `app:${appUuid}:${service}`;
-
-  orgKey && (await saveAppsForOrg(orgKey, appKey));
-
-  userId && !orgKey && (await saveAppForUser({ userId, appKey }));
-
   const curlmateCSEC =
     process.env[`CURLMATE_${service.toUpperCase().replace(/-/g, "_")}_CSEC`];
 
@@ -195,6 +171,31 @@ export async function configureApp(opts: {
 
   const CSEC = !isCurlmate ? clientSecret : curlmateCSEC!;
 
+  const appHash = orgKey
+    ? createAppHash(CID, CSEC, orgKey, userSelectedScope)
+    : createAppHash(CID, CSEC, userId!, userSelectedScope);
+
+  const appKey = `app:${appHash}:${service}`;
+
+  const app = await getApp({ appHash, service });
+  if (app) {
+    return appHash;
+  }
+
+  //always implement PKCE
+  const codeVerifier = crypto.randomBytes(24).toString("hex");
+
+  const appAuthUrl = getAuthUrl({
+    clientId: CID,
+    redirectUri,
+    authUrl,
+    userSelectedScope,
+    userInfoScope,
+    appHash,
+    service,
+    isCurlmate,
+    codeVerifier,
+  });
   const value: z.infer<typeof App> = {
     clientId: CID,
     clientSecret: CSEC,
@@ -204,7 +205,7 @@ export async function configureApp(opts: {
     tokenUrl,
     service,
     tokens: [],
-    custAuthUrl: `${origin}/oauth/${service}/${appUuid}`,
+    custAuthUrl: `${origin}/oauth/${service}/${appHash}`,
     codeVerifier,
     authTokenRequestUrlencoded,
     userInfoUrl,
@@ -215,16 +216,20 @@ export async function configureApp(opts: {
 
   await saveInRedis({ key: appKey, value, service });
 
-  return appUuid;
+  orgKey && (await LinkAppToOrg(orgKey, appKey));
+
+  userId && !orgKey && (await LinkAppToUser({ userId, appKey }));
+
+  return appHash;
 }
 
 export async function getRefreshToken(opts: {
-  appUuid: string;
+  appHash: string;
   tokenUuid: string;
   service: string;
 }): Promise<{ accessToken: string }> {
-  const { appUuid, tokenUuid, service } = opts;
-  if (!appUuid) {
+  const { appHash, tokenUuid, service } = opts;
+  if (!appHash) {
     throw new Error("Missing App Id");
   }
 
@@ -251,7 +256,7 @@ export async function getRefreshToken(opts: {
     };
   }
 
-  const app = await getApp({ appUuid, service });
+  const app = await getApp({ appHash, service });
   if (!app) {
     throw new Error("App not found");
   }
@@ -344,13 +349,13 @@ export function getAdditionalAuthUrlParamsForService(opts: {
 }
 
 export async function getUserInfo(opts: {
-  appUuid: string;
+  appHash: string;
   service: string;
   accessToken: string;
 }) {
-  const { appUuid, service, accessToken } = opts;
+  const { appHash, service, accessToken } = opts;
 
-  const appData = await getApp({ appUuid, service });
+  const appData = await getApp({ appHash, service });
   if (!appData) {
     throw new Error("App not found");
   }
@@ -437,7 +442,7 @@ function getRequestOptionsForService(opts: {
 }
 
 export async function saveToken(
-  appUuid: string,
+  appHash: string,
   service: string,
   user: Record<string, string>,
   tokenResponse: Record<string, unknown>,
@@ -462,17 +467,56 @@ export async function saveToken(
     service,
   });
 
-  const appData = await getApp({ appUuid, service });
+  const appData = await getApp({ appHash, service });
   if (!appData) {
     throw new Error("App not found");
   }
 
   appData.tokens.push(tokenId);
   await saveInRedis({
-    key: `app:${appUuid}:${service}`,
+    key: `app:${appHash}:${service}`,
     value: appData,
     service,
   });
 
   return tokenUuid;
+}
+
+function createAppHash(
+  cid: string,
+  csec: string,
+  userId: string,
+  scope: string | undefined,
+) {
+  const parts = [cid, csec, userId, scope];
+  return crypto.createHash("md5").update(parts.join("|")).digest("hex");
+}
+
+export async function buildCaludeConfig(apps: string[], accessToken: string) {
+  const entries = await Promise.all(
+    apps.map(async (appKey) => {
+      const [, appHash, service] = appKey.split(":");
+      const app = await getApp({ appHash, service });
+      const tokenKey = app?.tokens[0];
+      const tokenUuid = tokenKey?.split(":")[1];
+      const xConnection = `${appHash}:${tokenUuid}:${service}`;
+      return [
+        service,
+        {
+          command: "npx",
+          args: [
+            "-y",
+            "mcp-remote",
+            `https://${service}-mcp.curlmate.workers.dev/mcp`,
+            "--header",
+            `access-token: ${accessToken}`,
+            "--header",
+            `x-connection: ${xConnection}`,
+          ],
+        },
+      ];
+    }),
+  );
+
+  return Object.fromEntries(entries.filter(Boolean));
 }

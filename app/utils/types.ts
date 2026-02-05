@@ -67,3 +67,15 @@ export const zAccessToken = z.object({
   tokenResponse: z.record(z.string(), z.unknown()),
   user: z.record(z.string(), z.unknown()),
 });
+
+export const zApiKey = z.object({
+  userId: z.string(),
+});
+
+export type MCPConfig = Record<
+  string,
+  {
+    command: "npx";
+    args: string[];
+  }
+>;

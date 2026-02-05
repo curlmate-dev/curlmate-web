@@ -15,7 +15,7 @@ export const sessionStorage = createCookieSessionStorage({
 export const { getSession, commitSession, destroySession } = sessionStorage;
 
 export const userSession = createCookie("user-session", {
-  maxAge: 60 * 60 * 12,
+  maxAge: 60 * 60 * 24 * 7,
   httpOnly: true,
   path: "/",
   secure: process.env.NODE_ENV === "production",
