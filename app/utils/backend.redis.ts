@@ -42,7 +42,7 @@ export async function saveInRedis(opts: {
     Buffer.from(encryptionKey!, "base64url"),
   );
 
-  await redis.set(key, encryptedValue, { ex: 86400 });
+  await redis.set(key, encryptedValue);
 }
 
 export async function saveOrgInRedis(data: object) {
