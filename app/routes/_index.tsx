@@ -103,8 +103,8 @@ export default function Index() {
               </a>
             </div>
             <div>
-              <a href="/login" className="hover:underline">
-                Login With Github
+              <a href="/signin" className="hover:underline">
+                Signin
               </a>
             </div>{" "}
             <button
@@ -118,7 +118,7 @@ export default function Index() {
           {/* Right icons */}
           <div className="flex items-center gap-2 hidden lg:flex">
             <a
-              href="/login"
+              href="/signin"
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-200"
               aria-label="Login"
             >
@@ -133,7 +133,7 @@ export default function Index() {
                 >
                   <path d="M12 2a5 5 0 0 1 5 5c0 2.76-2.24 5-5 5s-5-2.24-5-5a5 5 0 0 1 5-5zm0 12c4.42 0 8 2.24 8 5v3H4v-3c0-2.76 3.58-5 8-5z" />
                 </svg>
-                <span>Login With Github</span>
+                <span>Sigin</span>
               </span>
             </a>
             <a href="/session" className="underline">
