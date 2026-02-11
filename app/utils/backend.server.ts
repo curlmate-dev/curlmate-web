@@ -295,7 +295,9 @@ export async function getRefreshToken(opts: {
 
   const value: z.infer<typeof zAccessToken> = {
     expiresAt: new Date(Date.now() + rawToken.expires_in * 1000).getTime(),
-    refreshToken,
+    refreshToken: rawToken.refresh_token
+      ? rawToken.refresh_token
+      : refreshToken,
     accessToken: rawToken.access_token,
     tokenResponse: rawToken,
     user,
