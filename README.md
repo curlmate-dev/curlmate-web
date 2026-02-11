@@ -1,7 +1,29 @@
-# Welcome to Remix!
+# Welcome to Curlmate!
+Drop in this code in your code to get refreshed access tokens
+```
+async function getAccessToken() {
+  const res = await fetch("https://curlmate.dev/api/token", {
+    headers: {
+      Authorization: `Bearer ${process.env.CURLMATE_JWT}`,
+      "x-connection": process.env.CURLMATE_CONNECTION
+    }
+  });
 
-- 📖 [Remix docs](https://remix.run/docs)
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
 
+// Usage inside your MCP server:
+const { access_token } = await getAccessToken();
+// use access_token to call Airtable / Google / etc
+```
+
+Postman Curl:
+```
+curl --location 'https://curlmate.dev/api/token' \
+--header 'Authorization: Bearer CURLMATE_JWT' \
+--header 'x-connection: CURLMATE_CONNECTION'
+```
 ## Development
 
 Run the dev server:
