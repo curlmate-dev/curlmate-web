@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Privacy Policy - Curlmate</title>
+  <style>
+    body { background: #f9f4e7; color: #222; font-family: sans-serif; max-width: 720px; margin: 40px auto; line-height: 1.6; }
+    h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+    footer { margin-top: 40px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ccc; padding-top: 10px; }
+  </style>
+</head>
+<body>
+<h1>Frequently Asked Questions</h1>
+
+<h2>What is Curlmate?</h2>
+<p>Curlmate is a persistent authentication layer for remote MCP servers. It securely stores refresh tokens and automatically issues fresh access tokens via API so your integrations don’t break when tokens expire.</p>
+
+<h2>Who is this for?</h2>
+<p>Developers running OAuth-backed remote MCP servers, especially those integrating with Claude Desktop.</p>
+
+<h2>What problem does it solve?</h2>
+<p>Access tokens expire. Refresh logic fails. OAuth callbacks are painful. When integrations break mid-flow, users often churn instead of debugging. Curlmate handles token refresh and auth reliability so your MCP servers stay connected.</p>
+
+<h2>How does it work?</h2>
+<p>You authorize a third-party service once via OAuth. Curlmate securely stores the refresh token. When your MCP server needs access, it calls the Curlmate API and receives a fresh access token.</p>
+
+<h2>Do I still need to implement OAuth?</h2>
+<p>No. Curlmate handles the OAuth flow and token refresh. Your MCP server only needs to request fresh access tokens via API.</p>
+
+<h2>What happens when access tokens expire?</h2>
+<p>Curlmate automatically uses the stored refresh token to obtain a new access token before returning it to your server.</p>
+
+<h2>What about refresh token rotation or scope changes?</h2>
+<p>Curlmate handles refresh token updates and stores new tokens when providers rotate them. If scopes change or authorization is revoked, you will need to re-authorize.</p>
+
+<h2>Is this secure?</h2>
+<p>Refresh tokens are stored securely with encryption and access controls. API access requires a valid API key and connection identifier.</p>
+
+<h2>Can I use this outside of Claude Desktop?</h2>
+<p>Yes. Curlmate works with any backend or remote MCP server that needs reliable OAuth token refresh via API.</p>
+
+<h2>What services are supported?</h2>
+<p>Support depends on configured OAuth providers. Early access currently focuses on commonly used API services for MCP integrations.</p>
+
+<h2>Is this production-ready?</h2>
+<p>Curlmate is in early access and focused on providing reliable token refresh for real-world MCP deployments. Remote MCP integrations are live and used as proof of reliability.</p>
+
+<h2>How do I get started?</h2>
+<p>Request an API key, authorize your connection once, and use the token endpoint in your MCP server to retrieve fresh access tokens.</p>
+
+<h2>What happens if I revoke access from the provider?</h2>
+<p>If you revoke Curlmate’s OAuth access from the third-party provider, token refresh will stop and you will need to re-authorize.</p>
+
+<h2>Does Curlmate call third-party APIs directly?</h2>
+<p>No. Curlmate only manages OAuth tokens. Your MCP server calls the third-party API using the access token provided.</p>
+</body>
+</html>
