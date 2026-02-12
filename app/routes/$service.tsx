@@ -9,6 +9,8 @@ import { getSession, userSession } from "~/utils/backend.cookie";
 import { getOrg } from "~/utils/backend.redis";
 import { OAuthConfig } from "~/utils/types";
 import { useState } from "react";
+import { Header } from "~/ui/curlmate/header";
+import { Footer } from "~/ui/curlmate/footer";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie") || "");
@@ -88,113 +90,11 @@ export default function ServicePage() {
   const { service } = useParams();
   const { org, oauthConfig } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
-  const [isOpen, setIsOpen] = useState(false);
   const [checked, setChecked] = useState(false);
 
   return (
     <main className="bg-[#fbf2e0] min-h-screen text-gray-900 font-sans">
-      <header className="border-b border-gray-200 bg-white ">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between">
-          <div className="flex items-center justify-between">
-            {/* Brand */}
-            <a href="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="Logo" className="h-8 md:h-10 w-auto" />
-              <span className="font-medium">Curlmate</span>
-            </a>
-          </div>
-          <div
-            className="lg:hidden flex items-center"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-hidden="true"
-          >
-            <svg
-              className="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M20 7L4 7"
-                stroke="#1C274C"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-              <path
-                d="M20 12L4 12"
-                stroke="#1C274C"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-              <path
-                d="M20 17L4 17"
-                stroke="#1C274C"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-          <div
-            className={`lg:hidden fixed inset-0 bg-[#fbf2e0] font-semibold flex-col items-center justify-center onClick={() => setIsOpen(false)} ${isOpen ? "flex" : "hidden"}`}
-          >
-            <div>
-              <a href="/" className="hover:underline">
-                Home
-              </a>
-            </div>
-            <div>
-              <a href="/login" className="hover:underline">
-                Login With Github
-              </a>
-            </div>{" "}
-            <button
-              className="mt-8 hover:underline"
-              onClick={() => setIsOpen(false)}
-            >
-              {" "}
-              Close{" "}
-            </button>
-          </div>
-          {/* Right icons */}
-          <div className="flex items-center gap-2 hidden lg:flex">
-            {org ? (
-              <div className="flex items-center gap-2">
-                <img
-                  src={org.avatar}
-                  alt="avatar"
-                  className="w-8 h-8 rounded-full border border-gray-400 "
-                ></img>
-                <a
-                  href="/logout"
-                  className="bg-gray-300 px-4 py-2 rounded inline-block text-[#222]"
-                >
-                  Logout
-                </a>
-              </div>
-            ) : (
-              <a
-                href="/login"
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-200"
-                aria-label="Login"
-              >
-                <span className="flex items-center gap-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    className="w-5 h-5"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M12 2a5 5 0 0 1 5 5c0 2.76-2.24 5-5 5s-5-2.24-5-5a5 5 0 0 1 5-5zm0 12c4.42 0 8 2.24 8 5v3H4v-3c0-2.76 3.58-5 8-5z" />
-                  </svg>
-                  <span>Login With Github</span>
-                </span>
-              </a>
-            )}
-          </div>
-        </div>
-      </header>
-
+      <Header org={org} />
       <h1 className="max-w-7xl mx-auto text-2xl font-medium text-center">
         {service?.toUpperCase()}
       </h1>
@@ -301,28 +201,7 @@ export default function ServicePage() {
         </form>
       </section>
       {/* Footer */}
-      <footer className="text-xs">
-        <div className="max-w-7xl mx-auto h-16">
-          <div className="flex flex-row justify-center gap-1">
-            <div>
-              <a className="underline" href="/tos.html">
-                Terms Of Service
-              </a>
-            </div>
-            <div>
-              <a className="underline" href="/privacy.html">
-                Privacy Policy
-              </a>
-            </div>
-          </div>
-          <div className="max-w-7xl mt-2 text-center">
-            &copy; 2025 Curlmate. All rights reserved.
-          </div>
-          <div className="max-w-7xl mt-2 text-center">
-            Contact: <a href="mailto:admin@curlmate.dev">admin@curlmate.dev</a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }

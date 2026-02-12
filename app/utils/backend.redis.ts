@@ -183,7 +183,6 @@ export async function getSessionUser(userId: string) {
 }
 
 export async function getUserForApiKey(apiKey: string) {
-  console.log(apiKey);
   const rawApiKey = await redis.get(apiKey);
 
   if (!rawApiKey) {

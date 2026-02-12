@@ -8,6 +8,8 @@ export const Org = z.object({
   apps: z.array(z.string()),
 });
 
+export type Org = z.infer<typeof Org>;
+
 export const GitUser = z.object({
   id: z.number(),
   login: z.string(),
