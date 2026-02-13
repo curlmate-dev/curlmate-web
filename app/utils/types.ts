@@ -25,7 +25,7 @@ export const App = z.object({
   appAuthUrl: z.string(),
   tokenUrl: z.string(),
   service: z.string(),
-  tokens: z.array(z.string()),
+  tokenId: z.string().nullable(),
   custAuthUrl: z.string(),
   codeVerifier: z.string(),
   authTokenRequestUrlencoded: z.boolean(),

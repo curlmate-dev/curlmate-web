@@ -24,9 +24,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
         accessToken: tokenResponse.access_token,
       });
 
-      const tokenUuid = await saveToken(appHash, service, user, tokenResponse);
+      await saveToken(appHash, service, user, tokenResponse);
 
-      return redirect(`/success/${service}/${tokenUuid}`);
+      return redirect(`/success/${service}/${appHash}`);
     } catch (error: unknown) {
       const err = error as Error;
 

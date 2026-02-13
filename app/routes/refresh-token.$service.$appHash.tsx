@@ -2,13 +2,13 @@ import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { getRefreshToken } from "~/utils/backend.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
-  const { service, appHash, tokenUuid } = params;
+  const { service, appHash } = params;
 
-  if (!service || !appHash || !tokenUuid) {
+  if (!service || !appHash) {
     throw redirect("/404");
   }
   try {
-    await getRefreshToken({ appHash, tokenUuid, service });
+    await getRefreshToken({ appHash, service });
   } catch (error: unknown) {
     const err = error as Error;
 
@@ -23,5 +23,5 @@ export async function loader({ params }: LoaderFunctionArgs) {
     );
   }
 
-  return redirect(`/success/${service}/${tokenUuid}`);
+  return redirect(`/success/${service}/${appHash}`);
 }

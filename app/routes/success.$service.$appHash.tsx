@@ -11,18 +11,18 @@ import { Footer } from "~/ui/curlmate/footer";
 import { Header } from "~/ui/curlmate/header";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { service, tokenUuid } = params;
+  const { service, appHash } = params;
 
   const session = await getSession(request.headers.get("Cookie") || "");
   const orgKey = session.get("orgKey");
   const org = orgKey ? await getOrg(orgKey) : undefined;
 
-  if (!service || !tokenUuid) {
+  if (!service || !appHash) {
     throw redirect("/404");
   }
 
   const decryptedTokenResponse = await getFromRedis({
-    key: `token:${tokenUuid}`,
+    key: `token:${appHash}`,
     service,
   });
 
