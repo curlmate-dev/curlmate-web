@@ -8,6 +8,12 @@ export function CenterHeader() {
         >
           FAQ
         </a>
+        <a
+          href="/apidocs"
+          className="font-medium hover:underline text-gray-600"
+        >
+          Api Docs
+        </a>
       </div>
     </>
   );
