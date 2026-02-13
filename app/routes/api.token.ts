@@ -31,7 +31,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       return Response.json("x-connection header missing");
     }
 
-    const [appHash, tokenUuid, service] = connection.split(":");
     const user = await getSessionUser(`user:${sub}`);
 
     if (!user) {
@@ -39,6 +38,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         error: "User not found",
       });
     }
+
+    const [appHash, service] = connection.split(":");
     const { apps } = user;
     const appKey = `app:${appHash}:${service}`;
     const idx1 = apps?.indexOf(appKey);
@@ -54,15 +55,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         error: "App not found",
       });
     }
-    const tokenKey = `token:${tokenUuid}`;
-    const idx2 = app.tokens.indexOf(tokenKey);
-    if (idx2 === -1) {
+
+    if (!app.tokenId) {
       return Response.json({
         error: "Access token not found",
       });
     }
 
-    const res = await getRefreshToken({ appHash, tokenUuid, service });
+    const res = await getRefreshToken({ appHash, service });
     return Response.json({
       accessToken: res.accessToken,
     });

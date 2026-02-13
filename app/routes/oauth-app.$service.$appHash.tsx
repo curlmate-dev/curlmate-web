@@ -25,35 +25,33 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { clientSecret, ...safeApp } = app;
-  const tokenIds = app.tokens;
-  const tokenPromises = tokenIds.map(async (tokenId) => {
-    const token = await getFromRedis({ key: tokenId, service });
-    const tokenUuid = tokenId.split(":")[1];
-    return { [tokenUuid]: token };
-  });
-
-  const tokens = await Promise.all(tokenPromises);
+  const tokenId = app.tokenId;
+  const token = tokenId ? await getFromRedis({ key: tokenId, service }) : null;
 
   return Response.json({
     org,
     app: safeApp,
-    tokens,
+    token,
     service,
     appHash,
   });
 };
 
 export default function OauthAppPage() {
-  const { org, app, tokens, service, appHash } = useLoaderData<typeof loader>();
+  const { org, app, token, service, appHash } = useLoaderData<typeof loader>();
   return (
     <main className="min-h-screen bg-[#f5f5dc] text-[#222] font-mono">
       <Header org={org} />
       <section className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex flex-col gap-y-8">
           <div className="bg-white border border-gray-400 rounded">
-            <h2 className="underline text-lg font-bold mb-2">OAuth App:</h2>
+            <h2 className="underline text-lg font-bold mb-2">
+              OAuth Connection:
+            </h2>
             <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">
-              {JSON.stringify(app, null, 2)}
+              <pre className="whitespace-pre-wrap bg-gray-100 p-2 border">
+                {JSON.stringify(app, null, 2)}
+              </pre>
             </div>
           </div>
           {/* Generated URLs */}
@@ -70,24 +68,18 @@ export default function OauthAppPage() {
             </div>
           </div>
           <div>
-            {tokens.map((tokenObj, idx) => {
-              const [tokenUuid, token] = Object.entries(tokenObj)[0];
-              return (
-                <div
-                  key={tokenUuid}
-                  className="bg-white border border-gray-300 rounded p-4 mb-4"
-                >
-                  <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">
-                    {JSON.stringify(token, null, 2)}
-                  </div>
-                  <a href={`/refresh-token/${service}/${appHash}/${tokenUuid}`}>
-                    <button className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded mt-2">
-                      Refresh Token
-                    </button>
-                  </a>
-                </div>
-              );
-            })}
+            <div className="bg-white border border-gray-300 rounded p-4 mb-4">
+              <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">
+                <pre className="whitespace-pre-wrap bg-gray-100 p-2 border">
+                  {JSON.stringify(token, null, 2)}
+                </pre>
+              </div>
+              <a href={`/refresh-token/${service}/${appHash}`}>
+                <button className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded mt-2">
+                  Refresh Token
+                </button>
+              </a>
+            </div>
           </div>
         </div>
       </section>

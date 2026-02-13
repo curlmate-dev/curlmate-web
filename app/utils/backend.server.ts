@@ -2,7 +2,6 @@ import * as path from "path";
 import * as crypto from "crypto";
 import fs from "fs";
 import { load } from "js-yaml";
-import { v4 as uuidv4 } from "uuid";
 import { getSession } from "./backend.cookie";
 import { redirect } from "@remix-run/node";
 import {
@@ -204,8 +203,8 @@ export async function configureApp(opts: {
     appAuthUrl,
     tokenUrl,
     service,
-    tokens: [],
-    custAuthUrl: `${origin}/oauth/${service}/${appHash}`,
+    tokenId: null,
+    custAuthUrl: `${origin}/auth-url/${service}/${appHash}`,
     codeVerifier,
     authTokenRequestUrlencoded,
     userInfoUrl,
@@ -225,23 +224,18 @@ export async function configureApp(opts: {
 
 export async function getRefreshToken(opts: {
   appHash: string;
-  tokenUuid: string;
   service: string;
 }): Promise<{ accessToken: string }> {
-  const { appHash, tokenUuid, service } = opts;
+  const { appHash, service } = opts;
   if (!appHash) {
     throw new Error("Missing App Id");
-  }
-
-  if (!tokenUuid) {
-    throw new Error("Missing Token Id");
   }
 
   if (!service) {
     throw new Error("Missing service name");
   }
 
-  const res = await getFromRedis({ key: `token:${tokenUuid}`, service });
+  const res = await getFromRedis({ key: `token:${appHash}`, service });
 
   const { expiresAt, accessToken, refreshToken, user } =
     zAccessToken.parse(res);
@@ -304,7 +298,7 @@ export async function getRefreshToken(opts: {
   };
 
   await saveInRedis({
-    key: `token:${tokenUuid}`,
+    key: `token:${appHash}`,
     value,
     service,
   });
@@ -449,39 +443,43 @@ export async function saveToken(
   user: Record<string, string>,
   tokenResponse: Record<string, unknown>,
 ) {
-  const tokenUuid = uuidv4();
-  const tokenId = `token:${tokenUuid}`;
-  await saveInRedis({
-    key: tokenId,
-    value: {
-      accessToken: tokenResponse.access_token,
-      refreshToken: tokenResponse.refresh_token
-        ? tokenResponse.refresh_token
-        : undefined,
-      expiresAt: tokenResponse.expires_in
-        ? new Date(
-            Date.now() + Number(tokenResponse.expires_in) * 1000,
-          ).getTime()
-        : undefined,
-      user,
-      tokenResponse,
-    },
-    service,
-  });
-
   const appData = await getApp({ appHash, service });
   if (!appData) {
     throw new Error("App not found");
   }
 
-  appData.tokens.push(tokenId);
+  const tokenId = `token:${appHash}`;
+
+  const exisitingToken = await getFromRedis({ key: tokenId, service });
+
+  const value: z.infer<typeof zAccessToken> = {
+    accessToken: tokenResponse.access_token as string,
+    refreshToken: tokenResponse.refresh_token
+      ? (tokenResponse.refresh_token as string)
+      : exisitingToken?.refreshToken,
+    expiresAt: tokenResponse.expires_in
+      ? new Date(Date.now() + Number(tokenResponse.expires_in) * 1000).getTime()
+      : undefined,
+    user,
+    tokenResponse,
+  };
+
   await saveInRedis({
-    key: `app:${appHash}:${service}`,
-    value: appData,
+    key: tokenId,
+    value,
     service,
   });
 
-  return tokenUuid;
+  await saveInRedis({
+    key: `app:${appHash}:${service}`,
+    value: {
+      ...appData,
+      tokenId,
+    },
+    service,
+  });
+  //token id token:appHash
+  return appHash;
 }
 
 function createAppHash(
@@ -498,10 +496,7 @@ export async function buildCaludeConfig(apps: string[], accessToken: string) {
   const entries = await Promise.all(
     apps.map(async (appKey) => {
       const [, appHash, service] = appKey.split(":");
-      const app = await getApp({ appHash, service });
-      const tokenKey = app?.tokens[0];
-      const tokenUuid = tokenKey?.split(":")[1];
-      const xConnection = `${appHash}:${tokenUuid}:${service}`;
+      const xConnection = `${appHash}:${service}`;
       return [
         service,
         {
