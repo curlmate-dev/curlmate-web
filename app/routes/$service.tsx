@@ -37,6 +37,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   const { service } = params;
 
+  if (!service) {
+    throw redirect("/404");
+  }
+
   const session = await getSession(request.headers.get("Cookie") || "");
   const orgKey = session.get("orgKey");
 
@@ -71,7 +75,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     });
   }
 
-  const appUuid = await configureApp({
+  const appHash = await configureApp({
     clientId,
     clientSecret,
     redirectUri,
@@ -83,7 +87,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     userId,
   });
 
-  return redirect(`/oauth-app/${service}/${appUuid}`);
+  return redirect(`/oauth-app/${service}/${appHash}`);
 };
 
 export default function ServicePage() {
@@ -195,7 +199,7 @@ export default function ServicePage() {
               className="bg-sky-400 h-12 w-full rounded-none border border-gray-600 mb-1 text-sm font-bold shadow hover:bg-sky-600"
               type="submit"
             >
-              Configure OAuth APP
+              Configure OAuth Connection
             </button>
           </div>
         </form>

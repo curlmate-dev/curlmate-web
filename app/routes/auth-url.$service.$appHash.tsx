@@ -2,13 +2,13 @@ import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { getFromRedis } from "~/utils/backend.redis";
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const { service, appUuid } = params;
+  const { service, appHash } = params;
 
-  if (!service || !appUuid) {
+  if (!service || !appHash) {
     throw redirect("/404");
   }
 
-  const app = await getFromRedis({ key: `app:${appUuid}:${service}`, service });
+  const app = await getFromRedis({ key: `app:${appHash}:${service}`, service });
 
   const authUrl = app.appAuthUrl;
 
