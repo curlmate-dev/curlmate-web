@@ -1,0 +1,99 @@
+openapi: 3.0.3
+info:
+  title: Curlmate API
+  version: 1.0.0
+  description: |
+    Curlmate is an OAuth orchestration and token vending API.
+    Exchange a valid JWT and connection reference for a service access token.
+
+servers:
+  - url: https://curlmate.dev
+  - url: http://localhost:5173
+
+paths:
+  /api/token:
+    get:
+      summary: Retrieve OAuth access token
+      description: |
+        Returns an OAuth access token for a previously authorized connection.
+
+        Requires:
+        - Bearer JWT for user authentication
+        - x-connection header identifying the stored OAuth connection
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: x-connection
+          in: header
+          required: true
+          description: |
+            Connection identifier in the format:
+            appHash:connectionId:service
+          schema:
+            type: string
+            example: 4603b9b2f760932eb4f3f6f78a500bec:2f2ab9c4-80eb-4db8-afc9-834cd2647ad6:airtable
+
+      responses:
+        "200":
+          description: Access token successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+
+        "401":
+          description: Unauthorized - Invalid or missing JWT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "404":
+          description: Connection not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: OAuth access token
+          example: ya29.a0AfH6SMA...
+        expires_in:
+          type: integer
+          description: Expiration time in seconds
+          example: 3600
+        token_type:
+          type: string
+          example: Bearer
+      required:
+        - access_token
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Unauthorized
+      required:
+        - error
