@@ -69,11 +69,17 @@ export default function OauthAppPage() {
           </div>
           <div>
             <div className="bg-white border border-gray-300 rounded p-4 mb-4">
-              <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">
-                <pre className="whitespace-pre-wrap bg-gray-100 p-2 border">
-                  {JSON.stringify(token, null, 2)}
-                </pre>
-              </div>
+              {token ? (
+                <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">
+                  <pre className="whitespace-pre-wrap bg-gray-100 p-2 border">
+                    {JSON.stringify(token, null, 2)}
+                  </pre>
+                </div>
+              ) : (
+                <div className="text-gray-500 p-2">
+                  No tokens found. Complete the OAuth flow to generate tokens.
+                </div>
+              )}
               <a href={`/refresh-token/${service}/${appHash}`}>
                 <button className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded mt-2">
                   Refresh Token
