@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { getUserForApiKey } from "~/utils/backend.redis";
 import { createJwt } from "~/utils/backend.jwt";
+import { authenticateApiKey } from "~/utils/backend.api";
 
 export async function loader(params: LoaderFunctionArgs) {
   const { request } = params;
@@ -17,8 +17,8 @@ export async function loader(params: LoaderFunctionArgs) {
     );
   }
 
-  const resUser = await getUserForApiKey(apiKey);
-  if (!resUser) {
+  const userId = await authenticateApiKey(apiKey);
+  if (!userId) {
     return Response.json(
       {
         error: "User Id not found",
@@ -28,7 +28,6 @@ export async function loader(params: LoaderFunctionArgs) {
       },
     );
   }
-  const { userId } = resUser;
 
   const jwt = createJwt(userId);
   if (!jwt) {

@@ -8,13 +8,19 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-export async function getFromRedis(opts: { key: string; service: string }) {
+export { redis };
+
+export async function getFromRedis(opts: { key: string; service?: string }) {
   const { key, service } = opts;
 
   const value = (await redis.get(key)) as string;
 
   if (!value) {
     return null;
+  }
+
+  if (!service) {
+    return value;
   }
 
   const encryptionKey =
@@ -29,9 +35,13 @@ export async function getFromRedis(opts: { key: string; service: string }) {
 export async function saveInRedis(opts: {
   key: string;
   value: string | object;
-  service: string;
+  service?: string;
 }) {
   const { key, value, service } = opts;
+  if (!service) {
+    return await redis.set(key, value);
+  }
+
   const encryptionKey =
     process.env[`ENCRYPTION_KEY_${service.toUpperCase().replace(/-/g, "_")}`];
 
