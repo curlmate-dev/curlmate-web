@@ -65,14 +65,3 @@ export function createJwt(userId: string): string | null {
     return null;
   }
 }
-
-// export function createJWTCredentials({
-//   config,
-//   provider,
-//   dynamicCredentials
-// }: {
-//   config: string;
-//   provider: ProviderJwt | ProviderTwoStep;
-//   dynamicCredentials: Record<string, any>
-// }) {
-// }
