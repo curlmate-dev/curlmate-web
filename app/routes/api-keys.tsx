@@ -73,7 +73,7 @@ export default function ApiKeysPage() {
                 type="text"
                 name="name"
                 placeholder="Key name (e.g., 'My API Client')"
-                className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm"
+                className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm bg-white"
                 required
               />
               <button
