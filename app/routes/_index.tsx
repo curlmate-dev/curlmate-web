@@ -70,15 +70,7 @@ export default function Index() {
 
       {/* Quick access cards */}
       <section className="max-w-7xl mx-auto px-4 pb-12">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">OAuth2 Services:</h2>
-          <a
-            href="/api-keys"
-            className="text-sm text-blue-600 hover:underline"
-          >
-            API Keys
-          </a>
-        </div>
+        <h2 className="text-lg font-semibold mb-4">OAuth2 Services:</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {services.map((s) => (
             <a
