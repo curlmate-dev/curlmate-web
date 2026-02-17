@@ -1,3 +1,4 @@
+isProd: false
 name: "pipedrive"
 authUrl: "https://oauth.pipedrive.com/oauth/authorize"
 tokenUrl: "https://oauth.pipedrive.com/oauth/token"

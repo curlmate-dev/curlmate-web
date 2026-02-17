@@ -1,3 +1,4 @@
+isProd: false
 name: "hubspot"
 authUrl: "https://app.hubspot.com/oauth/authorize"
 tokenUrl: "https://api.hubapi.com/oauth/v1/token"

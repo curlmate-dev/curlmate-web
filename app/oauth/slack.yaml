@@ -1,10 +1,11 @@
-  name: "slack"
-  authUrl: "https://slack.com/oauth/v2/authorize"
-  tokenUrl: "https://slack.com/api/oauth.v2.access"
-  userInfoUrl: "https://slack.com/api/users.info"
-  scopes:
-    "chat:write": "chat:write"
-    "channels:read": "channels:read"
-  userInfoScope: "users:read"
-  authTokenRequestUrlencoded: true
-  refreshTokenAuthHeader: true
+isProd: true
+name: "slack"
+authUrl: "https://slack.com/oauth/v2/authorize"
+tokenUrl: "https://slack.com/api/oauth.v2.access"
+userInfoUrl: "https://slack.com/api/users.info"
+scopes:
+  "chat:write": "chat:write"
+  "channels:read": "channels:read"
+userInfoScope: "users:read"
+authTokenRequestUrlencoded: true
+refreshTokenAuthHeader: true

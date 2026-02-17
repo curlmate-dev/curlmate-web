@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { Header } from "~/ui/curlmate/header";
+import { Footer } from "~/ui/curlmate/footer";
 
 export const links = () => [
   {
@@ -22,9 +24,11 @@ export default function ApiDocs() {
   }, []);
 
   return (
-    <>
-      <div id="swagger-ui" className="dark:bg-[#fbf2e0] min-h-screen" />
+    <div className="flex flex-col min-h-screen bg-[#f5f5dc]">
+      <Header />
+      <div id="swagger-ui" className="flex-1 pb-8" />
       <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
-    </>
+      <Footer />
+    </div>
   );
 }
