@@ -1,3 +1,4 @@
+isProd: true
 name: "airtable"
 authUrl: "https://airtable.com/oauth2/v1/authorize"
 tokenUrl: "https://airtable.com/oauth2/v1/token"

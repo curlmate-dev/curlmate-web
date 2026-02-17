@@ -1,8 +1,13 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import { userSession } from "~/utils/backend.cookie";
 import { v4 as uuidv4 } from "uuid";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
+import { readYaml } from "~/utils/backend.server";
+import fs from "fs";
+import path from "path";
+import { useState } from "react";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -15,78 +20,85 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       },
     });
   }
-  return Response.json({});
+
+  const oauthDir = path.join(process.cwd(), "app/oauth");
+  const files = fs.readdirSync(oauthDir).filter((f) => f.endsWith(".yaml"));
+
+  const services = files
+    .map((file) => {
+      try {
+        const config = readYaml(`/oauth/${file}`);
+        if (!config.isProd) return null;
+        const name = config.name;
+        return {
+          name,
+          icon: `/${name}.svg`,
+          link: `/${name}`,
+        };
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+
+  return Response.json({ services });
 };
+
 export default function Index() {
-  const services = [
-    { name: "Asana", icon: "/asana.svg", link: "/asana", alt: "asana-logo" },
-    {
-      name: "Airtable",
-      icon: "/airtable.svg",
-      link: "/airtable",
-      alt: "airtable-logo",
-    },
-    { name: "Clickup", icon: "/clickup.svg", link: "/clickup" },
-    { name: "Dropbox", icon: "/dropbox.svg", link: "/dropbox" },
-    { name: "Github", icon: "/github.svg", link: "/github" },
-    { name: "Gmail", icon: "/gmail.svg", link: "/gmail" },
-    {
-      name: "Google Calendar",
-      icon: "/google-calendar.svg",
-      link: "/google-calendar",
-    },
-    { name: "Google Docs", icon: "/google-docs.svg", link: "/google-docs" },
-    { name: "Google Drive", icon: "/google-drive.svg", link: "/google-drive" },
-    { name: "Hubspot", icon: "/hubspot.svg", link: "/hubspot" },
-    { name: "Instagram", icon: "/instagram.svg", link: "/instagram" },
-    {
-      name: "Jira Software Cloud",
-      icon: "/jira-software-cloud.svg",
-      link: "/jira-software-cloud",
-    },
-    { name: "Linear", icon: "/linear.svg", link: "/linear" },
-    { name: "Monday", icon: "/monday.svg", link: "/monday" },
-    { name: "Notion", icon: "/notion.svg", link: "/notion" },
-    { name: "Salesforce", icon: "/salesforce.svg", link: "/salesforce" },
-    { name: "Slack", icon: "/slack.svg", link: "/slack" },
-    // { name: "Pipedrive", icon: "/pipedrive.svg", link: "/pipedrive" },
-  ];
+  const { services } = useLoaderData<typeof loader>();
+  const [query, setQuery] = useState("");
+
+  const filteredServices = query
+    ? services.filter((s: { name: string }) =>
+        s.name.toLowerCase().includes(query.toLowerCase()),
+      )
+    : [];
 
   return (
-    <main className="min-h-screen bg-[#fbf2e0] text-gray-900 font-sans">
+    <div className="flex flex-col min-h-screen bg-[#fbf2e0] text-gray-900 font-sans">
       <Header />
-      {/* Welcome */}
-      <section className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-semibold">Welcome</h1>
-        <p className="mt-1">
-          <a
-            href="/how-it-works.html"
-            className="text-blue-600 dark:text-blue-400"
-          >
-            How it works
-          </a>
-        </p>
-      </section>
-
-      {/* Quick access cards */}
-      <section className="max-w-7xl mx-auto px-4 pb-12">
-        <h2 className="text-lg font-semibold mb-4">OAuth2 Services:</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {services.map((s) => (
-            <a
-              key={s.name}
-              href={s.link}
-              className="flex flex-col items-center justify-center p-6 border border-gray-200 dark:border-gray-700 rounded-lg bg-white hover:shadow dark:hover:shadow hover:bg-gray-100 dark:hover:bg-gray-200  transition"
-            >
-              <div className="text-3xl mb-2">
-                <img src={s.icon} className="h-6" alt={s.alt}></img>
-              </div>
-              <div className="text-sm text-center">{s.name}</div>
-            </a>
-          ))}
-        </div>
-      </section>
+      <main className="flex-1">
+        <section className="max-w-2xl mx-auto px-4 py-16">
+          <h1 className="text-3xl font-bold text-center mb-8">
+            Connect Your Accounts
+          </h1>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search services..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white"
+            />
+            <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-black text-white px-4 py-2 rounded-md">
+              Search
+            </button>
+          </div>
+          {query && (
+            <div className="mt-4 bg-white border border-gray-200 rounded-lg shadow-lg">
+              {filteredServices.length > 0 ? (
+                filteredServices.map(
+                  (s: { name: string; icon: string; link: string }) => (
+                    <a
+                      key={s.name}
+                      href={s.link}
+                      className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                    >
+                      <img src={s.icon} alt={s.name} className="w-6 h-6" />
+                      <span className="font-medium">{s.name}</span>
+                    </a>
+                  ),
+                )
+              ) : (
+                <div className="p-4 text-gray-500 text-center">
+                  No services found
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      </main>
       <Footer />
-    </main>
+    </div>
   );
 }

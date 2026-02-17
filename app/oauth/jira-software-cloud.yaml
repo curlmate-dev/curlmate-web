@@ -1,3 +1,4 @@
+isProd: false
 name: "jira-software-cloud"
 authUrl: "https://auth.atlassian.com/authorize"
 tokenUrl: "https://auth.atlassian.com/oauth/token"

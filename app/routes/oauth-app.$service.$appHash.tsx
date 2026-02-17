@@ -38,59 +38,62 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export default function OauthAppPage() {
-  const { org, app, token, service, appHash } = useLoaderData<typeof loader>();
+  const { app, token, service, appHash } = useLoaderData<typeof loader>();
   return (
-    <main className="min-h-screen bg-[#f5f5dc] text-[#222] font-mono">
-      <Header org={org} />
-      <section className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex flex-col gap-y-8">
-          <div className="bg-white border border-gray-400 rounded">
-            <h2 className="underline text-lg font-bold mb-2">
-              OAuth Connection:
-            </h2>
-            <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">
-              <pre className="whitespace-pre-wrap bg-gray-100 p-2 border">
-                {JSON.stringify(app, null, 2)}
-              </pre>
+    <div className="flex flex-col min-h-screen bg-[#f5f5dc] text-[#222] font-mono">
+      <Header />
+      <main className="flex-1">
+        <section className="max-w-4xl mx-auto px-4 py-8">
+          <div className="flex flex-col gap-6">
+            <div className="bg-white border border-gray-400 rounded p-6">
+              <h2 className="text-lg font-bold mb-4">OAuth Connection</h2>
+              <div className="bg-gray-100 p-3 rounded text-xs break-all">
+                <pre className="whitespace-pre-wrap">
+                  {JSON.stringify(app, null, 2)}
+                </pre>
+              </div>
             </div>
-          </div>
-          {/* Generated URLs */}
-          <div className="border border-gray-400 bg-white rounded">
-            <div>
-              <h2 className="underline font-semibold">
-                Generated Customer Auth URL:
+
+            <div className="bg-white border border-gray-400 rounded p-6">
+              <h2 className="text-lg font-semibold mb-4">
+                Generated Customer Auth URL
               </h2>
-              <div className="bg-gray-100 text-blue-600 p-2 text-xs break-all">
-                <a href={app.custAuthUrl} target="_blank" rel="noreferrer">
+              <div className="bg-gray-100 p-3 rounded text-sm">
+                <a
+                  href={app.custAuthUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-600 break-all"
+                >
                   {app.custAuthUrl}
                 </a>
               </div>
             </div>
-          </div>
-          <div>
-            <div className="bg-white border border-gray-300 rounded p-4 mb-4">
+
+            <div className="bg-white border border-gray-400 rounded p-6">
               {token ? (
-                <div className="bg-gray-100 p-2 text-gray-600 text-xs break-all">
-                  <pre className="whitespace-pre-wrap bg-gray-100 p-2 border">
-                    {JSON.stringify(token, null, 2)}
-                  </pre>
-                </div>
+                <>
+                  <div className="bg-gray-100 p-3 rounded text-xs break-all mb-4">
+                    <pre className="whitespace-pre-wrap">
+                      {JSON.stringify(token, null, 2)}
+                    </pre>
+                  </div>
+                  <a href={`/refresh-token/${service}/${appHash}`}>
+                    <button className="bg-gray-800 text-white px-4 py-2 rounded text-sm hover:bg-gray-700">
+                      Refresh Token
+                    </button>
+                  </a>
+                </>
               ) : (
-                <div className="text-gray-500 p-2">
+                <div className="text-gray-500 mb-4">
                   No tokens found. Complete the OAuth flow to generate tokens.
                 </div>
               )}
-              <a href={`/refresh-token/${service}/${appHash}`}>
-                <button className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded mt-2">
-                  Refresh Token
-                </button>
-              </a>
             </div>
           </div>
-        </div>
-      </section>
-      {/* Footer */}
+        </section>
+      </main>
       <Footer />
-    </main>
+    </div>
   );
 }

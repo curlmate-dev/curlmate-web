@@ -36,6 +36,7 @@ export const App = z.object({
 });
 
 export const ServiceConfig = z.object({
+  isProd: z.boolean().optional(),
   name: z.string(),
   authUrl: z.string(),
   tokenUrl: z.string(),
