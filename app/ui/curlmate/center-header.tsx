@@ -1,7 +1,7 @@
 export function CenterHeader() {
   return (
     <>
-      <div className="flex items-center gap-2 hidden lg:flex">
+      <div className="flex items-center gap-6 hidden lg:flex">
         <a
           href="/faq.html"
           className="font-medium hover:underline text-gray-600"
@@ -12,7 +12,13 @@ export function CenterHeader() {
           href="/apidocs"
           className="font-medium hover:underline text-gray-600"
         >
-          Api Docs
+          API Docs
+        </a>
+        <a
+          href="/api-keys"
+          className="font-medium hover:underline text-gray-600"
+        >
+          API Keys
         </a>
       </div>
     </>

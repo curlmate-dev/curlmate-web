@@ -97,115 +97,127 @@ export default function ServicePage() {
   const [checked, setChecked] = useState(false);
 
   return (
-    <main className="bg-[#fbf2e0] min-h-screen text-gray-900 font-sans">
-      <Header org={org} />
-      <h1 className="max-w-7xl mx-auto text-2xl font-medium text-center">
-        {service?.toUpperCase()}
-      </h1>
+    <div className="flex flex-col min-h-screen bg-[#f5f5dc] text-[#222] font-mono">
+      <Header />
+      <main className="flex-1">
+        <section className="max-w-4xl mx-auto px-4 py-8">
+          <div className="bg-white border border-gray-400 rounded p-6 mb-6">
+            <h1 className="text-2xl font-bold mb-6">
+              {service?.toUpperCase()}
+            </h1>
 
-      {/* Redirect / Auth URLs */}
-      <section className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex flex-col border border-gray-400 bg-white rounded-none px-2 flex flex-col pt-2 pb-2">
-          <div className="font-medium text-sm wrap break-word">
-            <strong>Redirect URL:</strong>{" "}
-            <code>{oauthConfig.redirectUri}</code>
-          </div>
-          <div className="font-medium text-sm wrap break-word">
-            <strong>Auth URL:</strong>
-            {"  "}
-            <code>{oauthConfig.authUrl}</code>
-          </div>
-          <div className="font-medium text-sm wrap break-word">
-            <strong>Token URL:</strong>
-            {"  "}
-            <code>{oauthConfig.tokenUrl}</code>
-          </div>
-        </div>
-      </section>
-      {/* Input Box */}
-      <section className="max-w-4xl mx-auto px-4 py-8">
-        <form
-          method="post"
-          className="border border-gray-400 bg-white rounded-none flex flex-col gap-y-8"
-        >
-          <label className="px-1 py-1">
-            <input
-              type="checkbox"
-              name="isCurlmate"
-              checked={checked}
-              onChange={(e) => setChecked(e.target.checked)}
-            />
-            Use Curlmate Client ID
-          </label>
-          {!checked && (
-            <div className={`flex flex-col gap-y-2 px-1`}>
-              <label className="flex flex-col gap-y-1">
-                Client ID:
-                <input
-                  name="clientId"
-                  defaultValue={actionData?.fields.clientId ?? ""}
-                  className="border border-gray-200 dark:border-gray-700 rounded-none bg-white h-10"
-                  type="text"
-                  placeholder="Paste your Client ID"
-                />
-              </label>
-              <div className="text-red-600">{actionData?.error?.clientId}</div>
+            <div className="bg-gray-100 p-3 rounded text-sm mb-4">
+              <p className="mb-1">
+                <strong>Redirect URL:</strong>
+              </p>
+              <code className="text-blue-600 break-all">
+                {oauthConfig.redirectUri}
+              </code>
             </div>
-          )}
-          {!checked && (
-            <div className="flex flex-col gap-y-2 px-1">
-              <label className="flex flex-col gap-y-1">
-                Client Secret:
+            <div className="bg-gray-100 p-3 rounded text-sm mb-4">
+              <p className="mb-1">
+                <strong>Auth URL:</strong>
+              </p>
+              <code className="text-blue-600 break-all">
+                {oauthConfig.authUrl}
+              </code>
+            </div>
+            <div className="bg-gray-100 p-3 rounded text-sm">
+              <p className="mb-1">
+                <strong>Token URL:</strong>
+              </p>
+              <code className="text-blue-600 break-all">
+                {oauthConfig.tokenUrl}
+              </code>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-400 rounded p-6">
+            <form method="post" className="flex flex-col gap-4">
+              <label className="flex items-center gap-2">
                 <input
-                  name="clientSecret"
-                  defaultValue={actionData?.fields.clientSecret ?? ""}
-                  className="border border-gray-200 dark:border-gray-700 rounded-none bg-white h-10"
-                  type="text"
-                  placeholder="Paste your Client Secret"
+                  type="checkbox"
+                  name="isCurlmate"
+                  checked={checked}
+                  onChange={(e) => setChecked(e.target.checked)}
                 />
+                Use Curlmate Client ID
               </label>
-              <div className="text-red-600">
-                {actionData?.error?.clientSecret}
+
+              {!checked && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm">Client ID:</label>
+                  <input
+                    name="clientId"
+                    defaultValue={actionData?.fields.clientId ?? ""}
+                    className="border border-gray-300 rounded px-3 py-2 bg-white"
+                    type="text"
+                    placeholder="Paste your Client ID"
+                  />
+                  {actionData?.error?.clientId && (
+                    <p className="text-red-600 text-sm">
+                      {actionData.error.clientId}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {!checked && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm">Client Secret:</label>
+                  <input
+                    name="clientSecret"
+                    defaultValue={actionData?.fields.clientSecret ?? ""}
+                    className="border border-gray-300 rounded px-3 py-2 bg-white"
+                    type="text"
+                    placeholder="Paste your Client Secret"
+                  />
+                  {actionData?.error?.clientSecret && (
+                    <p className="text-red-600 text-sm">
+                      {actionData.error.clientSecret}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1">
+                <label className="text-sm">Scopes:</label>
+                <select
+                  name="userSelectedScope"
+                  className="border border-gray-300 rounded px-3 py-2 bg-white"
+                >
+                  {Object.keys(oauthConfig.scopes).map((scope) => (
+                    <option key={scope} value={oauthConfig.scopes[scope]}>
+                      {scope}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </div>
-          )}
-          <div className="flex flex-col gap-y-2 px-1">
-            <label className="flex flex-col gap-y-1">
-              Scopes:
-              <select
-                name="userSelectedScope"
-                className="border border-gray-200 dark:border-gray-700 rounded-none bg-white h-10"
+
+              <input type="hidden" name="authUrl" value={oauthConfig.authUrl} />
+              <input
+                type="hidden"
+                name="redirectUri"
+                value={oauthConfig.redirectUri}
+              />
+              <input
+                type="hidden"
+                name="tokenUrl"
+                value={oauthConfig.tokenUrl}
+              />
+              <input type="hidden" name="service" value={service} />
+
+              <button
+                className="bg-gray-800 text-white px-4 py-3 rounded text-sm font-semibold hover:bg-gray-700 mt-4"
+                type="submit"
               >
-                {Object.keys(oauthConfig.scopes).map((scope) => (
-                  <option key={scope} value={oauthConfig.scopes[scope]}>
-                    {scope}
-                  </option>
-                ))}
-              </select>
-            </label>
+                Configure OAuth Connection
+              </button>
+            </form>
           </div>
-          <div>
-            <input type="hidden" name="authUrl" value={oauthConfig.authUrl} />
-            <input
-              type="hidden"
-              name="redirectUri"
-              value={oauthConfig.redirectUri}
-            />
-            <input type="hidden" name="tokenUrl" value={oauthConfig.tokenUrl} />
-            <input type="hidden" name="service" value={service} />
-          </div>
-          <div className="px-1">
-            <button
-              className="bg-sky-400 h-12 w-full rounded-none border border-gray-600 mb-1 text-sm font-bold shadow hover:bg-sky-600"
-              type="submit"
-            >
-              Configure OAuth Connection
-            </button>
-          </div>
-        </form>
-      </section>
-      {/* Footer */}
+        </section>
+      </main>
       <Footer />
-    </main>
+    </div>
   );
 }

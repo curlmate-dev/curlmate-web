@@ -1,3 +1,4 @@
+isProd: false
 name: "monday"
 authUrl: "https://auth.monday.com/oauth2/authorize"
 tokenUrl: "https://auth.monday.com/oauth2/token"

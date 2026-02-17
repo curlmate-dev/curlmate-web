@@ -1,3 +1,4 @@
+isProd: false
 name: "instagram"
 authUrl: "https://www.facebook.com/v23.0/dialog/oauth"
 tokenUrl: "https://graph.facebook.com/v23.0/oauth/access_token"

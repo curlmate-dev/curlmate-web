@@ -1,6 +1,6 @@
 export function Footer() {
   return (
-    <footer className="border-gray-200 text-xs py-6">
+    <footer className="bg-[#f5f5dc] border-t border-gray-200 text-xs py-6 mt-auto">
       <div className="flex flex-wrap justify-center max-w-7xl mx-auto space-x-6">
         <a
           href="/tos.html"
