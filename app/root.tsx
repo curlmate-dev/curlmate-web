@@ -6,6 +6,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/node";
+import { ensureBoot, ensureKeyIndex } from "./bootstrap.server";
 
 import "./tailwind.css";
 
@@ -22,12 +23,21 @@ export const links: LinksFunction = () => [
   },
 ];
 
+export const loader = async () => {
+  await ensureBoot();
+  await ensureKeyIndex();
+  return null;
+};
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
         {/* Google Analytics */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-HG84CLGPWJ"></script>
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-HG84CLGPWJ"
+        ></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -59,21 +69,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
           type="text/javascript"
           src="https://cs.iubenda.com/autoblocking/4061272.js"
         />
-        <script
-          type="text/javascript"
-          src="//cdn.iubenda.com/cs/gpp/stub.js"
-        />
+        <script type="text/javascript" src="//cdn.iubenda.com/cs/gpp/stub.js" />
         <script
           type="text/javascript"
           src="//cdn.iubenda.com/cs/iubenda_cs.js"
-          charSet="UTF-8"
           async
         />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <meta name="google-adsense-account" content="ca-pub-8034791205231255"></meta>
+        <meta
+          name="google-adsense-account"
+          content="ca-pub-8034791205231255"
+        ></meta>
       </head>
       <body>
         {children}
