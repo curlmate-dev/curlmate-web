@@ -1,7 +1,4 @@
-import * as path from "path";
 import * as crypto from "crypto";
-import fs from "fs";
-import { load } from "js-yaml";
 import { getSession } from "./backend.cookie";
 import { redirect } from "@remix-run/node";
 import {
@@ -9,21 +6,14 @@ import {
   getFromRedis,
   LinkAppToOrg,
   LinkAppToUser,
+  redis,
   saveInRedis,
 } from "./backend.redis";
 import { ServiceConfig, App, zAccessToken } from "./types";
 import { URLSearchParams } from "url";
 import { z } from "zod";
 
-export function readYaml(filePath: string) {
-  const absoulutePath = path.join(...[process.cwd(), "/app", filePath]);
-  const fileContents = fs.readFileSync(absoulutePath, "utf-8");
-  const rawConfig = load(fileContents);
-  const config = ServiceConfig.parse(rawConfig);
-  return config;
-}
-
-export function getAuthUrl(opts: {
+export async function getAuthUrl(opts: {
   clientId: string;
   redirectUri: string;
   authUrl: string;
@@ -63,7 +53,13 @@ export function getAuthUrl(opts: {
     code_challenge_method: "S256",
   });
 
-  const serviceConfig = readYaml(`/oauth/${service}.yaml`);
+  const raw = await redis.get(`yaml:${service}`);
+  if (typeof raw !== "string") {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  const parsed = JSON.parse(raw);
+  const serviceConfig = ServiceConfig.parse(parsed);
   const scope = getScopeForService({
     userInfoScope,
     userSelectedScope,
@@ -141,7 +137,9 @@ export async function configureApp(opts: {
     userId,
     isCurlmate,
   } = opts;
-  const serviceConfig = readYaml(`/oauth/${service}.yaml`);
+
+  const config = await redis.get(`yaml:${service}`);
+  const serviceConfig = ServiceConfig.parse(config);
   const {
     authUrl,
     tokenUrl,
@@ -184,7 +182,7 @@ export async function configureApp(opts: {
   //always implement PKCE
   const codeVerifier = crypto.randomBytes(24).toString("hex");
 
-  const appAuthUrl = getAuthUrl({
+  const appAuthUrl = await getAuthUrl({
     clientId: CID,
     redirectUri,
     authUrl,

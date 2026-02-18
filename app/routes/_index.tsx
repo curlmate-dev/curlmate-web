@@ -4,10 +4,8 @@ import { userSession } from "~/utils/backend.cookie";
 import { v4 as uuidv4 } from "uuid";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
-import { readYaml } from "~/utils/backend.server";
-import fs from "fs";
-import path from "path";
 import { useState } from "react";
+import { redis } from "~/utils/backend.redis";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -21,25 +19,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
   }
 
-  const oauthDir = path.join(process.cwd(), "app/oauth");
-  const files = fs.readdirSync(oauthDir).filter((f) => f.endsWith(".yaml"));
-
-  const services = files
-    .map((file) => {
-      try {
-        const config = readYaml(`/oauth/${file}`);
-        if (!config.isProd) return null;
-        const name = config.name;
-        return {
-          name,
-          icon: `/${name}.svg`,
-          link: `/${name}`,
-        };
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean);
+  const services = await redis.get("yaml:services:index");
 
   return Response.json({ services });
 };
