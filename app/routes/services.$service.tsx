@@ -4,22 +4,22 @@ import {
   LoaderFunctionArgs,
   redirect,
 } from "@remix-run/node";
-import { configureApp, readYaml } from "~/utils/backend.server";
 import { getSession, userSession } from "~/utils/backend.cookie";
-import { getOrg } from "~/utils/backend.redis";
-import { OAuthConfig } from "~/utils/types";
+import { getOrg, redis } from "~/utils/backend.redis";
+import { OAuthConfig, ServiceConfig } from "~/utils/types";
 import { useState } from "react";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
+import { configureApp } from "~/utils/backend.server";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+  const { service } = params;
   const session = await getSession(request.headers.get("Cookie") || "");
   const orgKey = session.get("orgKey");
   const org = orgKey ? await getOrg(orgKey) : undefined;
 
-  const url = new URL(request.url);
-
-  const serviceConfig = readYaml(`/oauth${url.pathname}.yaml`);
+  const rawConfig = await redis.get(`yaml:${service}`);
+  const serviceConfig = ServiceConfig.parse(rawConfig);
 
   const oauthConfig: OAuthConfig = {
     authUrl: serviceConfig.authUrl,
@@ -92,7 +92,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
 export default function ServicePage() {
   const { service } = useParams();
-  const { org, oauthConfig } = useLoaderData<typeof loader>();
+  const { oauthConfig } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const [checked, setChecked] = useState(false);
 
