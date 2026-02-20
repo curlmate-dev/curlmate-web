@@ -31,7 +31,7 @@ export async function createApiKey(name: string, userId: string) {
   await saveInRedis({ key: hashedKey, value });
 
   const userKeysKey = `user:${userId}:apikeys`;
-  const existingKeys = await redis.smembers(userKeysKey);
+  await redis.smembers(userKeysKey);
   await redis.sadd(userKeysKey, hashedKey);
 
   return { plainKey, hashedKey };
@@ -45,7 +45,7 @@ export async function listApiKeys(userId: string): Promise<ApiKeyData[]> {
     keyHashes.map(async (keyHash) => {
       const data = await getFromRedis({ key: keyHash });
       return { keyHash, ...data };
-    })
+    }),
   );
 
   return keysWithData as ApiKeyData[];
