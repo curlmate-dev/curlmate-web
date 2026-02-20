@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const Org = z.object({
+export const zOrg = z.object({
   id: z.number(),
   login: z.string(),
   avatar: z.url(),
@@ -8,16 +8,16 @@ export const Org = z.object({
   apps: z.array(z.string()),
 });
 
-export type Org = z.infer<typeof Org>;
+export type Org = z.infer<typeof zOrg>;
 
-export const GitUser = z.object({
+export const zGitUser = z.object({
   id: z.number(),
   login: z.string(),
   avatar_url: z.url(),
   email: z.email().nullable(),
 });
 
-export const App = z.object({
+export const zApp = z.object({
   clientId: z.string(),
   clientSecret: z.string(),
   redirectUri: z.string(),
@@ -35,7 +35,9 @@ export const App = z.object({
   refreshTokenAuthHeader: z.boolean(),
 });
 
-export const ServiceConfig = z.object({
+export type App = z.infer<typeof zApp>;
+
+export const zServiceConfig = z.object({
   isProd: z.boolean().optional(),
   name: z.string(),
   authUrl: z.string(),
@@ -50,19 +52,21 @@ export const ServiceConfig = z.object({
   refreshTokenAuthHeader: z.boolean(),
 });
 
-const OauthConfig = z.object({
+export type ServiceConfig = z.infer<typeof zServiceConfig>;
+const zOauthConfig = z.object({
   authUrl: z.string(),
   tokenUrl: z.string(),
   redirectUri: z.string(),
   scopes: z.record(z.string(), z.string()),
 });
 
-export type OAuthConfig = z.infer<typeof OauthConfig>;
+export type OAuthConfig = z.infer<typeof zOauthConfig>;
 
-export const SessionUser = z.object({
+export const zSessionUser = z.object({
   apps: z.array(z.string()),
 });
 
+export type SessionUser = z.infer<typeof zSessionUser>;
 export const zAccessToken = z.object({
   accessToken: z.string(),
   refreshToken: z.string().optional(),
