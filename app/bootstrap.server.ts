@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { redis } from "./utils/backend.redis";
 import yaml from "yaml";
-import { ServiceConfig } from "./utils/types";
+import { ServiceConfig, zServiceConfig } from "./utils/types";
 
 let initialized = false;
 export async function ensureBoot() {
@@ -21,9 +21,9 @@ export async function ensureBoot() {
       const fullPath = path.join(...[basePath, file]);
       const content = fs.readFileSync(fullPath, "utf-8");
       const parsedYaml = yaml.parse(content);
-      const config = ServiceConfig.parse(parsedYaml);
+      const config = zServiceConfig.parse(parsedYaml);
 
-      await redis.set(`yaml:${file.split(".")[0]}`, JSON.stringify(config));
+      await redis.set(`yaml:${file.split(".")[0]}`, config);
     }
   }
   initialized = true;
@@ -37,11 +37,12 @@ export async function ensureKeyIndex() {
     .filter((v) => v && typeof v === "object")
     .map((v) => {
       try {
-        return ServiceConfig.parse(v);
+        return zServiceConfig.parse(v);
       } catch {
         return null;
       }
     })
+    .filter((config): config is ServiceConfig => config !== null)
     .filter((config) => config && config.isProd)
     .map((config) => ({
       name: config.name,
@@ -49,5 +50,5 @@ export async function ensureKeyIndex() {
       link: `services/${config.name}`,
     }));
 
-  await redis.set("yaml:services:index", JSON.stringify(services));
+  await redis.set("yaml:services:index", services);
 }

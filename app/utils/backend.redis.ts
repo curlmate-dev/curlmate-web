@@ -1,6 +1,14 @@
 import { Redis } from "@upstash/redis";
-import { App, GitUser, Org, SessionUser, zApiKey } from "./types";
-import { z } from "zod";
+import {
+  zApp,
+  App,
+  zGitUser,
+  zOrg,
+  zSessionUser,
+  SessionUser,
+  zApiKey,
+  Org,
+} from "./types";
 import { encrypt, decrypt } from "./backend.encryption";
 
 const redis = new Redis({
@@ -56,7 +64,7 @@ export async function saveInRedis(opts: {
 }
 
 export async function saveOrgInRedis(data: object) {
-  const org = GitUser.parse(data);
+  const org = zGitUser.parse(data);
   if ("login" in org) {
     const redisKey = `org:${org.login}`;
     const existing = await redis.get(redisKey);
@@ -87,7 +95,7 @@ export async function getAppsForOrg(orgKey: string): Promise<string[] | null> {
     return null;
   }
 
-  const org = Org.parse(rawOrg);
+  const org = zOrg.parse(rawOrg);
   const apps = org.apps;
   return apps;
 }
@@ -99,7 +107,7 @@ export async function getAppsForUser(userId: string): Promise<string[] | null> {
     return null;
   }
 
-  const user = SessionUser.parse(rawUser);
+  const user = zSessionUser.parse(rawUser);
   const apps = user.apps;
   return apps;
 }
@@ -107,14 +115,14 @@ export async function getAppsForUser(userId: string): Promise<string[] | null> {
 export async function LinkAppToOrg(
   orgKey: string,
   appKey: string,
-): Promise<z.infer<typeof Org> | null> {
+): Promise<Org | null> {
   const rawOrg = await redis.get(orgKey);
 
   if (!rawOrg) {
     return null;
   }
 
-  const org = Org.parse(rawOrg);
+  const org = zOrg.parse(rawOrg);
   const idx = org.apps.indexOf(appKey);
   if (idx === -1) {
     org.apps.push(appKey);
@@ -123,23 +131,21 @@ export async function LinkAppToOrg(
   return org;
 }
 
-export async function getOrg(
-  orgKey: string,
-): Promise<z.infer<typeof Org> | null> {
+export async function getOrg(orgKey: string): Promise<Org | null> {
   const rawOrg = await redis.get(orgKey);
 
   if (!rawOrg) {
     return null;
   }
 
-  const org = Org.parse(rawOrg);
+  const org = zOrg.parse(rawOrg);
   return org;
 }
 
 export async function getApp(opts: {
   appHash: string;
   service: string;
-}): Promise<z.infer<typeof App> | null> {
+}): Promise<App | null> {
   const { appHash, service } = opts;
   const rawApp = (await redis.get(`app:${appHash}:${service}`)) as string;
   if (!rawApp) {
@@ -151,14 +157,14 @@ export async function getApp(opts: {
   const decryptedApp = JSON.parse(
     decrypt(rawApp, Buffer.from(encryptionKey!, "base64url")),
   );
-  const app = App.parse(decryptedApp);
+  const app = zApp.parse(decryptedApp);
   return app;
 }
 
 export async function LinkAppToUser(opts: {
   userId: string;
   appKey: string;
-}): Promise<z.infer<typeof SessionUser>> {
+}): Promise<SessionUser | null> {
   const { userId, appKey } = opts;
   const rawUser = await redis.get(`user:${userId}`);
   if (!rawUser) {
@@ -172,7 +178,7 @@ export async function LinkAppToUser(opts: {
     return user;
   }
 
-  const user = SessionUser.parse(rawUser);
+  const user = zSessionUser.parse(rawUser);
   const idx = user.apps.indexOf(appKey);
   if (idx === -1) {
     user.apps.push(appKey);
@@ -188,7 +194,7 @@ export async function getSessionUser(userId: string) {
     return null;
   }
 
-  const sessionUser = SessionUser.parse(rawUser);
+  const sessionUser = zSessionUser.parse(rawUser);
   return sessionUser;
 }
 

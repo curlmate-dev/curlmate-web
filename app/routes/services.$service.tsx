@@ -6,7 +6,7 @@ import {
 } from "@remix-run/node";
 import { getSession, userSession } from "~/utils/backend.cookie";
 import { getOrg, redis } from "~/utils/backend.redis";
-import { OAuthConfig, ServiceConfig } from "~/utils/types";
+import { OAuthConfig, zServiceConfig } from "~/utils/types";
 import { useState } from "react";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
@@ -19,7 +19,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const org = orgKey ? await getOrg(orgKey) : undefined;
 
   const rawConfig = await redis.get(`yaml:${service}`);
-  const serviceConfig = ServiceConfig.parse(rawConfig);
+  const serviceConfig = zServiceConfig.parse(rawConfig);
 
   const oauthConfig: OAuthConfig = {
     authUrl: serviceConfig.authUrl,
@@ -92,7 +92,9 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
 export default function ServicePage() {
   const { service } = useParams();
-  const { oauthConfig } = useLoaderData<typeof loader>();
+  const { oauthConfig } = useLoaderData<typeof loader>() as {
+    oauthConfig: OAuthConfig;
+  };
   const actionData = useActionData<typeof action>();
   const [checked, setChecked] = useState(false);
 

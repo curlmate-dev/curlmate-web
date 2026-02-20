@@ -9,7 +9,7 @@ import {
   redis,
   saveInRedis,
 } from "./backend.redis";
-import { ServiceConfig, App, zAccessToken } from "./types";
+import { ServiceConfig, App, zAccessToken, zServiceConfig } from "./types";
 import { URLSearchParams } from "url";
 import { z } from "zod";
 
@@ -54,12 +54,8 @@ export async function getAuthUrl(opts: {
   });
 
   const raw = await redis.get(`yaml:${service}`);
-  if (typeof raw !== "string") {
-    throw new Response("Not Found", { status: 404 });
-  }
 
-  const parsed = JSON.parse(raw);
-  const serviceConfig = ServiceConfig.parse(parsed);
+  const serviceConfig = zServiceConfig.parse(raw);
   const scope = getScopeForService({
     userInfoScope,
     userSelectedScope,
@@ -139,7 +135,7 @@ export async function configureApp(opts: {
   } = opts;
 
   const config = await redis.get(`yaml:${service}`);
-  const serviceConfig = ServiceConfig.parse(config);
+  const serviceConfig = zServiceConfig.parse(config);
   const {
     authUrl,
     tokenUrl,
@@ -175,6 +171,7 @@ export async function configureApp(opts: {
   const appKey = `app:${appHash}:${service}`;
 
   const app = await getApp({ appHash, service });
+
   if (app) {
     return appHash;
   }
@@ -193,7 +190,8 @@ export async function configureApp(opts: {
     isCurlmate,
     codeVerifier,
   });
-  const value: z.infer<typeof App> = {
+
+  const value: App = {
     clientId: CID,
     clientSecret: CSEC,
     redirectUri,
@@ -329,7 +327,7 @@ export function getScopeForService(opts: {
 }
 
 export function getAdditionalAuthUrlParamsForService(opts: {
-  serviceConfig: z.infer<typeof ServiceConfig>;
+  serviceConfig: ServiceConfig;
   params: URLSearchParams;
 }) {
   const { serviceConfig, params } = opts;
