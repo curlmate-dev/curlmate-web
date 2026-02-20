@@ -494,7 +494,7 @@ export async function buildCaludeConfig(apps: string[], accessToken: string) {
       const [, appHash, service] = appKey.split(":");
       const xConnection = `${appHash}:${service}`;
       return [
-        service,
+        `${service}:${appHash}`,
         {
           command: "npx",
           args: [
