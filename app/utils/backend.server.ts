@@ -17,7 +17,7 @@ export async function getAuthUrl(opts: {
   clientId: string;
   redirectUri: string;
   authUrl: string;
-  userSelectedScope: string;
+  userSelectedScope: string[];
   userInfoScope: string | undefined;
   appHash: string;
   service: string;
@@ -115,7 +115,7 @@ export async function configureApp(opts: {
   clientId: string;
   clientSecret: string;
   redirectUri: string;
-  userSelectedScope: string;
+  userSelectedScope: string[];
   service: string;
   origin: string;
   orgKey: string | undefined;
@@ -170,10 +170,13 @@ export async function configureApp(opts: {
 
   const appKey = `app:${appHash}:${service}`;
 
-  const app = await getApp({ appHash, service });
-
-  if (app) {
-    return appHash;
+  try {
+    const existingApp = await getApp({ appHash, service });
+    if (existingApp) {
+      return appHash;
+    }
+  } catch (e) {
+    throw Error("Error checking existing app in Redis");
   }
 
   //always implement PKCE
@@ -209,11 +212,14 @@ export async function configureApp(opts: {
     refreshTokenAuthHeader,
   };
 
-  await saveInRedis({ key: appKey, value, service });
+  try {
+    await saveInRedis({ key: appKey, value, service });
+    orgKey && (await LinkAppToOrg(orgKey, appKey));
 
-  orgKey && (await LinkAppToOrg(orgKey, appKey));
-
-  userId && !orgKey && (await LinkAppToUser({ userId, appKey }));
+    userId && !orgKey && (await LinkAppToUser({ userId, appKey }));
+  } catch (e) {
+    throw Error("Error saving app config in Redis");
+  }
 
   return appHash;
 }
@@ -315,11 +321,11 @@ export async function requireOrg(request: Request): Promise<string> {
 
 export function getScopeForService(opts: {
   userInfoScope: string | undefined;
-  userSelectedScope: string;
+  userSelectedScope: string[];
 }) {
   const { userInfoScope, userSelectedScope } = opts;
 
-  const scopes = userSelectedScope ? [userSelectedScope] : [];
+  const scopes = userSelectedScope ? [...userSelectedScope] : [];
 
   userInfoScope && scopes.push(userInfoScope);
 
@@ -482,9 +488,10 @@ function createAppHash(
   cid: string,
   csec: string,
   userId: string,
-  scope: string | undefined,
+  scopes: string[],
 ) {
-  const parts = [cid, csec, userId, scope];
+  const parts = [cid, csec, userId, ...scopes];
+
   return crypto.createHash("md5").update(parts.join("|")).digest("hex");
 }
 
