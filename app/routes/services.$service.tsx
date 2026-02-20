@@ -7,7 +7,7 @@ import {
 import { getSession, userSession } from "~/utils/backend.cookie";
 import { getOrg, redis } from "~/utils/backend.redis";
 import { OAuthConfig, zServiceConfig } from "~/utils/types";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
 import { configureApp } from "~/utils/backend.server";
@@ -52,7 +52,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
   const clientId = formData.get("clientId")?.toString();
   const clientSecret = formData.get("clientSecret")?.toString();
-  const userSelectedScope = formData.get("userSelectedScope")?.toString() ?? "";
+  const userSelectedScope = formData.getAll("userSelectedScope") as string[];
   const redirectUri = formData.get("redirectUri")?.toString();
   const isCurlmate = formData.get("isCurlmate") === "on";
 
@@ -76,11 +76,11 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   }
 
   const appHash = await configureApp({
-    clientId,
-    clientSecret,
-    redirectUri,
+    clientId: clientId ?? "",
+    clientSecret: clientSecret ?? "",
+    redirectUri: redirectUri ?? "",
     userSelectedScope,
-    service,
+    service: service!,
     origin,
     orgKey,
     isCurlmate,
@@ -97,6 +97,22 @@ export default function ServicePage() {
   };
   const actionData = useActionData<typeof action>();
   const [checked, setChecked] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [userScopes, setUserScopes] = useState<string[]>([]);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f5f5dc] text-[#222] font-mono">
@@ -146,54 +162,138 @@ export default function ServicePage() {
                 Use Curlmate Client ID
               </label>
 
-              {!checked && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm">Client ID:</label>
-                  <input
-                    name="clientId"
-                    defaultValue={actionData?.fields.clientId ?? ""}
-                    className="border border-gray-300 rounded px-3 py-2 bg-white"
-                    type="text"
-                    placeholder="Paste your Client ID"
-                  />
-                  {actionData?.error?.clientId && (
-                    <p className="text-red-600 text-sm">
-                      {actionData.error.clientId}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {!checked && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm">Client Secret:</label>
-                  <input
-                    name="clientSecret"
-                    defaultValue={actionData?.fields.clientSecret ?? ""}
-                    className="border border-gray-300 rounded px-3 py-2 bg-white"
-                    type="text"
-                    placeholder="Paste your Client Secret"
-                  />
-                  {actionData?.error?.clientSecret && (
-                    <p className="text-red-600 text-sm">
-                      {actionData.error.clientSecret}
-                    </p>
-                  )}
-                </div>
-              )}
+              <div className="flex flex-col gap-1">
+                {checked ? null : (
+                  <>
+                    <label htmlFor="cid" className="text-sm">
+                      Client ID:
+                    </label>
+                    <input
+                      name="clientId"
+                      defaultValue={actionData?.fields.clientId ?? ""}
+                      className="border border-gray-300 rounded px-3 py-2 bg-white"
+                      type="text"
+                      placeholder="Paste your Client ID"
+                      id="cid"
+                    />
+                  </>
+                )}
+                {checked ? (
+                  <input name="clientId" type="hidden" value="" />
+                ) : null}
+                {actionData?.error?.clientId && (
+                  <p className="text-red-600 text-sm">
+                    {actionData.error.clientId}
+                  </p>
+                )}
+              </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm">Scopes:</label>
-                <select
-                  name="userSelectedScope"
-                  className="border border-gray-300 rounded px-3 py-2 bg-white"
-                >
-                  {Object.keys(oauthConfig.scopes).map((scope) => (
-                    <option key={scope} value={oauthConfig.scopes[scope]}>
-                      {scope}
-                    </option>
-                  ))}
-                </select>
+                {checked ? null : (
+                  <>
+                    <label htmlFor="cs" className="text-sm">
+                      Client Secret:
+                    </label>
+                    <input
+                      name="clientSecret"
+                      defaultValue={actionData?.fields.clientSecret ?? ""}
+                      className="border border-gray-300 rounded px-3 py-2 bg-white"
+                      type="text"
+                      placeholder="Paste your Client Secret"
+                      id="cs"
+                    />
+                  </>
+                )}
+                {checked ? (
+                  <input name="clientSecret" type="hidden" value="" />
+                ) : null}
+                {actionData?.error?.clientSecret && (
+                  <p className="text-red-600 text-sm">
+                    {actionData.error.clientSecret}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label htmlFor="dd" className="text-sm">
+                  Scopes:
+                </label>
+                <div className="relative" id="dd" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(!open)}
+                    className="bg-white text-black px-4 py-2 border border-gray-300 rounded w-full text-left flex justify-between items-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
+                    <span
+                      className={
+                        userScopes.length ? "text-gray-900" : "text-gray-500"
+                      }
+                    >
+                      {userScopes.length
+                        ? `${userScopes.length} scope${userScopes.length > 1 ? "s" : ""} selected`
+                        : "Select scopes"}
+                    </span>
+                    <svg
+                      className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                  {open && (
+                    <div className="absolute z-10 bg-white border border-gray-300 rounded mt-1 w-full shadow-lg top-full left-0 max-h-48 overflow-y-auto">
+                      {userScopes.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setUserScopes([])}
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 border-b border-gray-100"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                      {Object.entries(oauthConfig.scopes).map(
+                        ([scope, value]) => {
+                          const checked = userScopes.includes(value);
+                          return (
+                            <label
+                              key={value}
+                              className="flex items-center px-3 py-2 gap-3 hover:bg-gray-50 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() =>
+                                  setUserScopes((prev) =>
+                                    checked
+                                      ? prev.filter((v) => v !== value)
+                                      : [...prev, value],
+                                  )
+                                }
+                                className="w-4 h-4 rounded border-gray-300 text-gray-800 focus:ring-gray-500"
+                              />
+                              <span className="text-sm">{scope}</span>
+                            </label>
+                          );
+                        },
+                      )}
+                    </div>
+                  )}
+                </div>
+                {userScopes.map((scope) => (
+                  <input
+                    key={scope}
+                    name="userSelectedScope"
+                    value={scope}
+                    type="hidden"
+                  ></input>
+                ))}
               </div>
 
               <input type="hidden" name="authUrl" value={oauthConfig.authUrl} />

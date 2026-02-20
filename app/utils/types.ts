@@ -21,7 +21,7 @@ export const zApp = z.object({
   clientId: z.string(),
   clientSecret: z.string(),
   redirectUri: z.string(),
-  userSelectedScope: z.string(),
+  userSelectedScope: z.array(z.string()),
   appAuthUrl: z.string(),
   tokenUrl: z.string(),
   service: z.string(),
