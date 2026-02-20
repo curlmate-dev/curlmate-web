@@ -7,7 +7,7 @@ import {
 import { getSession, userSession } from "~/utils/backend.cookie";
 import { getOrg, redis } from "~/utils/backend.redis";
 import { OAuthConfig, zServiceConfig } from "~/utils/types";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
 import { configureApp } from "~/utils/backend.server";
@@ -99,6 +99,20 @@ export default function ServicePage() {
   const [checked, setChecked] = useState(false);
   const [open, setOpen] = useState(false);
   const [userScopes, setUserScopes] = useState<string[]>([]);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f5f5dc] text-[#222] font-mono">
@@ -149,21 +163,24 @@ export default function ServicePage() {
               </label>
 
               <div className="flex flex-col gap-1">
-                <label htmlFor="cid" className="text-sm">
-                  Client ID:
-                </label>
+                {checked ? null : (
+                  <>
+                    <label htmlFor="cid" className="text-sm">
+                      Client ID:
+                    </label>
+                    <input
+                      name="clientId"
+                      defaultValue={actionData?.fields.clientId ?? ""}
+                      className="border border-gray-300 rounded px-3 py-2 bg-white"
+                      type="text"
+                      placeholder="Paste your Client ID"
+                      id="cid"
+                    />
+                  </>
+                )}
                 {checked ? (
                   <input name="clientId" type="hidden" value="" />
-                ) : (
-                  <input
-                    name="clientId"
-                    defaultValue={actionData?.fields.clientId ?? ""}
-                    className="border border-gray-300 rounded px-3 py-2 bg-white"
-                    type="text"
-                    placeholder="Paste your Client ID"
-                    id="cid"
-                  />
-                )}
+                ) : null}
                 {actionData?.error?.clientId && (
                   <p className="text-red-600 text-sm">
                     {actionData.error.clientId}
@@ -172,21 +189,24 @@ export default function ServicePage() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label htmlFor="cs" className="text-sm">
-                  Client Secret:
-                </label>
+                {checked ? null : (
+                  <>
+                    <label htmlFor="cs" className="text-sm">
+                      Client Secret:
+                    </label>
+                    <input
+                      name="clientSecret"
+                      defaultValue={actionData?.fields.clientSecret ?? ""}
+                      className="border border-gray-300 rounded px-3 py-2 bg-white"
+                      type="text"
+                      placeholder="Paste your Client Secret"
+                      id="cs"
+                    />
+                  </>
+                )}
                 {checked ? (
                   <input name="clientSecret" type="hidden" value="" />
-                ) : (
-                  <input
-                    name="clientSecret"
-                    defaultValue={actionData?.fields.clientSecret ?? ""}
-                    className="border border-gray-300 rounded px-3 py-2 bg-white"
-                    type="text"
-                    placeholder="Paste your Client Secret"
-                    id="cs"
-                  />
-                )}
+                ) : null}
                 {actionData?.error?.clientSecret && (
                   <p className="text-red-600 text-sm">
                     {actionData.error.clientSecret}
@@ -198,25 +218,53 @@ export default function ServicePage() {
                 <label htmlFor="dd" className="text-sm">
                   Scopes:
                 </label>
-                <div className="relative" id="dd">
+                <div className="relative" id="dd" ref={dropdownRef}>
                   <button
                     type="button"
                     onClick={() => setOpen(!open)}
-                    className="bg-white text-black px-4 py-2 border border-gray-300 rounded w-full text-left max-h-50"
+                    className="bg-white text-black px-4 py-2 border border-gray-300 rounded w-full text-left flex justify-between items-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
                   >
-                    {userScopes.length
-                      ? userScopes.join(", ")
-                      : "Select scopes"}
+                    <span
+                      className={
+                        userScopes.length ? "text-gray-900" : "text-gray-500"
+                      }
+                    >
+                      {userScopes.length
+                        ? `${userScopes.length} scope${userScopes.length > 1 ? "s" : ""} selected`
+                        : "Select scopes"}
+                    </span>
+                    <svg
+                      className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
                   </button>
                   {open && (
-                    <div className="absolute z-10 bg-white border rounded mt-1 w-full max-h-48 overflow-y-auto top-full left-0">
+                    <div className="absolute z-10 bg-white border border-gray-300 rounded mt-1 w-full shadow-lg top-full left-0 max-h-48 overflow-y-auto">
+                      {userScopes.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setUserScopes([])}
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 border-b border-gray-100"
+                        >
+                          Clear all
+                        </button>
+                      )}
                       {Object.entries(oauthConfig.scopes).map(
                         ([scope, value]) => {
                           const checked = userScopes.includes(value);
                           return (
                             <label
                               key={value}
-                              className="flex items-center px-2 py-1 gap-2 hover:bg-gray-100 cursor-pointer"
+                              className="flex items-center px-3 py-2 gap-3 hover:bg-gray-50 cursor-pointer"
                             >
                               <input
                                 type="checkbox"
@@ -228,8 +276,9 @@ export default function ServicePage() {
                                       : [...prev, value],
                                   )
                                 }
+                                className="w-4 h-4 rounded border-gray-300 text-gray-800 focus:ring-gray-500"
                               />
-                              {scope}
+                              <span className="text-sm">{scope}</span>
                             </label>
                           );
                         },

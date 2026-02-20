@@ -157,8 +157,8 @@ export default function ApiKeysPage() {
             </div>
           )}
         </section>
-        <Footer />
       </main>
+      <Footer />
     </div>
   );
 }
