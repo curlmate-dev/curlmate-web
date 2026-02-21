@@ -158,6 +158,7 @@ export async function getApp(opts: {
     decrypt(rawApp, Buffer.from(encryptionKey!, "base64url")),
   );
 
+  //zAppCompat repairs data by allowing older connections with string type scope to string[] type scope
   const result = zAppCompat.safeParse(decryptedApp);
   if (!result.success) {
     return null;
@@ -165,6 +166,7 @@ export async function getApp(opts: {
 
   const app = result.data;
 
+  // this may never run again as it repairs older apps with string type scope to string[] scope
   if (typeof decryptedApp.userSelectedScope === "string") {
     const repairedCipher = encrypt(
       JSON.stringify(app),
