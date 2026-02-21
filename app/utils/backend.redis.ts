@@ -1,6 +1,5 @@
 import { Redis } from "@upstash/redis";
 import {
-  zApp,
   App,
   zGitUser,
   zOrg,
@@ -10,6 +9,7 @@ import {
   Org,
 } from "./types";
 import { encrypt, decrypt } from "./backend.encryption";
+import { zAppCompat } from "./backend.migration";
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -157,7 +157,22 @@ export async function getApp(opts: {
   const decryptedApp = JSON.parse(
     decrypt(rawApp, Buffer.from(encryptionKey!, "base64url")),
   );
-  const app = zApp.parse(decryptedApp);
+
+  const result = zAppCompat.safeParse(decryptedApp);
+  if (!result.success) {
+    return null;
+  }
+
+  const app = result.data;
+
+  if (typeof decryptedApp.userSelectedScope === "string") {
+    const repairedCipher = encrypt(
+      JSON.stringify(app),
+      Buffer.from(encryptionKey!, "base64url"),
+    );
+    await redis.set(`app:${appHash}:${service}`, repairedCipher);
+  }
+
   return app;
 }
 
