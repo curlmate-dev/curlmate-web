@@ -63,10 +63,14 @@ const zOauthConfig = z.object({
 export type OAuthConfig = z.infer<typeof zOauthConfig>;
 
 export const zSessionUser = z.object({
+  rateLimitTier: z.string(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
   apps: z.array(z.string()),
 });
 
 export type SessionUser = z.infer<typeof zSessionUser>;
+
 export const zAccessToken = z.object({
   accessToken: z.string(),
   refreshToken: z.string().optional(),
@@ -86,3 +90,9 @@ export type MCPConfig = Record<
     args: string[];
   }
 >;
+
+export const zCurlmateJWT = z.object({
+  sub: z.string(),
+});
+
+export type CurlmateJWT = z.infer<typeof zCurlmateJWT>;
