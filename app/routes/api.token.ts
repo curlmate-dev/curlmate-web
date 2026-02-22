@@ -1,7 +1,8 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { verifyJwt } from "~/utils/backend.jwt";
-import { getApp, getSessionUser } from "~/utils/backend.redis";
+import { consumeUsage, getApp, getSessionUser } from "~/utils/backend.redis";
 import { getRefreshToken } from "~/utils/backend.server";
+import { zCurlmateJWT } from "~/utils/types";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const authHeader = request.headers.get("Authorization");
@@ -24,7 +25,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         error: "JWT could not be decoded",
       });
     }
-    const { sub } = decodedValue;
+    const { sub } = zCurlmateJWT.parse(decodedValue);
 
     const connection = request.headers.get("x-connection");
     if (!connection) {
@@ -38,6 +39,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         error: "User not found",
       });
     }
+
+    await consumeUsage(sub);
 
     const [appHash, service] = connection.split(":");
     const { apps } = user;

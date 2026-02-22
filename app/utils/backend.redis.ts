@@ -178,22 +178,21 @@ export async function getApp(opts: {
   return app;
 }
 
+export async function createUserFromSession(sessionUserId: string) {
+  await redis.setnx(`user:${sessionUserId}`, {
+    rateLimitTier: "free",
+    createdAt: new Date().getTime(),
+    updatedAt: new Date().getTime(),
+    apps: [],
+  });
+}
+
 export async function LinkAppToUser(opts: {
   userId: string;
   appKey: string;
 }): Promise<SessionUser | null> {
   const { userId, appKey } = opts;
   const rawUser = await redis.get(`user:${userId}`);
-  if (!rawUser) {
-    const user = {
-      apps: [appKey],
-    };
-
-    await redis.set(`user:${userId}`, user, {
-      ex: 604800,
-    });
-    return user;
-  }
 
   const user = zSessionUser.parse(rawUser);
   const idx = user.apps.indexOf(appKey);
@@ -224,4 +223,31 @@ export async function getUserForApiKey(apiKey: string) {
 
   const parsed = zApiKey.parse(rawApiKey);
   return parsed;
+}
+
+export function getMonthKeyUTC() {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+export function secondsUntilNextMonthUTC() {
+  const now = new Date();
+
+  const nextMonth = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0),
+  );
+  return Math.floor((nextMonth.getMonth() - now.getMonth()) / 1000);
+}
+
+export async function consumeUsage(userId: string) {
+  const usageKey = `usage:user:${userId}:${getMonthKeyUTC()}`;
+  const count = await redis.incr(usageKey);
+
+  if (count === 1) {
+    await redis.expire(usageKey, secondsUntilNextMonthUTC());
+  }
+
+  return count;
 }

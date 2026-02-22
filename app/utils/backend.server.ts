@@ -2,6 +2,7 @@ import * as crypto from "crypto";
 import { getSession } from "./backend.cookie";
 import { redirect } from "@remix-run/node";
 import {
+  createUserFromSession,
   getApp,
   getFromRedis,
   LinkAppToOrg,
@@ -214,11 +215,24 @@ export async function configureApp(opts: {
 
   try {
     await saveInRedis({ key: appKey, value, service });
-    orgKey && (await LinkAppToOrg(orgKey, appKey));
-
-    userId && !orgKey && (await LinkAppToUser({ userId, appKey }));
   } catch (e) {
+    console.error(e);
     throw Error("Error saving app config in Redis");
+  }
+
+  try {
+    await createUserFromSession(userId!);
+  } catch (error) {
+    console.error(error);
+    throw Error("Could not create user from session");
+  }
+
+  try {
+    orgKey && (await LinkAppToOrg(orgKey, appKey));
+    userId && !orgKey && (await LinkAppToUser({ userId, appKey }));
+  } catch (error) {
+    console.error(error);
+    Error("Could not link connection to org or user");
   }
 
   return appHash;
