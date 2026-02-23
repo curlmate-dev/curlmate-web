@@ -2,8 +2,13 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import { verifyJwt } from "~/utils/backend.jwt";
 import { getSessionUser } from "~/utils/backend.redis";
 import { buildCaludeConfig } from "~/utils/backend.server";
+import { isAppHost } from "~/utils/get-host";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  if (isAppHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
+
   const authHeader = request.headers.get("Authorization");
   const jwt = authHeader?.split(" ")[1];
 
