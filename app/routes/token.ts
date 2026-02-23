@@ -2,9 +2,14 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import { verifyJwt } from "~/utils/backend.jwt";
 import { consumeUsage, getApp, getSessionUser } from "~/utils/backend.redis";
 import { getRefreshToken } from "~/utils/backend.server";
+import { isAppHost } from "~/utils/get-host";
 import { zCurlmateJWT } from "~/utils/types";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  if (isAppHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
+
   const authHeader = request.headers.get("Authorization");
   const jwt = authHeader?.split(" ")[1];
   if (!jwt) {
