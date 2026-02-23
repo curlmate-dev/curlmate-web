@@ -1,9 +1,13 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { createJwt } from "~/utils/backend.jwt";
 import { authenticateApiKey } from "~/utils/backend.api";
+import { isAppHost } from "~/utils/get-host";
 
-export async function loader(params: LoaderFunctionArgs) {
-  const { request } = params;
+export async function loader({ request }: LoaderFunctionArgs) {
+  if (isAppHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
+
   const authHeader = request.headers.get("Authorization");
   const apiKey = authHeader?.split(" ")[1];
   if (!apiKey) {
