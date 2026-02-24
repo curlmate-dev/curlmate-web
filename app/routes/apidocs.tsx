@@ -11,23 +11,27 @@ export const links = () => [
 
 export default function ApiDocs() {
   useEffect(() => {
-    if (typeof window !== "undefined" && window.SwaggerUIBundle) {
-      window.SwaggerUIBundle({
-        url: "/openapi.yaml",
-        dom_id: "#swagger-ui",
-        presets: [window.SwaggerUIBundle.presets.apis],
-        layout: "BaseLayout",
-        docExpansion: "none",
-        defaultModelsExpandDepth: -1,
-      });
-    }
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js";
+    script.onload = () => {
+      if (window.SwaggerUIBundle) {
+        window.SwaggerUIBundle({
+          url: "/openapi.yaml",
+          dom_id: "#swagger-ui",
+          presets: [window.SwaggerUIBundle.presets.apis],
+          layout: "BaseLayout",
+          docExpansion: "none",
+          defaultModelsExpandDepth: -1,
+        });
+      }
+    };
+    document.body.appendChild(script);
   }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f5f5dc]">
       <Header />
       <div id="swagger-ui" className="flex-1 pb-8" />
-      <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
       <Footer />
     </div>
   );
