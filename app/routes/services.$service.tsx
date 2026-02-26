@@ -11,8 +11,13 @@ import { useState, useEffect, useRef } from "react";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
 import { configureApp } from "~/utils/backend.server";
+import { isApiHost } from "~/utils/get-host";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+  if (isApiHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
+
   const { service } = params;
   const session = await getSession(request.headers.get("Cookie") || "");
   const orgKey = session.get("orgKey");

@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
+import { LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { isApiHost } from "~/utils/get-host";
 
 export const links = () => [
   {
@@ -8,6 +10,11 @@ export const links = () => [
     href: "https://unpkg.com/swagger-ui-dist/swagger-ui.css",
   },
 ];
+export async function loader({ request }: LoaderFunctionArgs) {
+  if (!isApiHost(request) && process.env.NODE_ENV === "production") {
+    return redirect("https://api.curlmate.dev/apidocs", 301);
+  }
+}
 
 export default function ApiDocs() {
   useEffect(() => {

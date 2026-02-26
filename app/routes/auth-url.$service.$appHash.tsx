@@ -1,7 +1,11 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { getFromRedis } from "~/utils/backend.redis";
+import { isApiHost } from "~/utils/get-host";
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
+  if (isApiHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
   const { service, appHash } = params;
 
   if (!service || !appHash) {
