@@ -8,8 +8,13 @@ import { userSession } from "~/utils/backend.cookie";
 import { createApiKey, deleteApiKey, listApiKeys } from "~/utils/backend.api";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
+import { isApiHost } from "~/utils/get-host";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  if (isApiHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
+
   const cookieHeader = request.headers.get("Cookie");
   const { userId } = (await userSession.parse(cookieHeader)) || {};
 

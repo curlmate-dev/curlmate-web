@@ -1,8 +1,12 @@
 import { redirect, LoaderFunctionArgs } from "@remix-run/node";
 import { commitSession, getSession } from "~/utils/backend.cookie";
 import { saveOrgInRedis } from "~/utils/backend.redis";
+import { isApiHost } from "~/utils/get-host";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  if (isApiHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   if (!code) {
