@@ -7,12 +7,79 @@ info:
     Exchange a valid JWT and connection reference for a service access token.
 
 servers:
-  - url: https://curlmate.dev
+  - url: https://api.curlmate.dev
   - url: http://localhost:5173
 
 paths:
-  /api/token:
+  /jwt:
     get:
+      tags:
+        - Authentication
+      summary: Generate JWT token
+      description: |
+        Generates a JWT token for user authentication.
+        
+        Requires:
+        - Bearer API Key for authentication (using ApiKey scheme)
+
+      security:
+        - apiKeyAuth: []
+
+      responses:
+        "200":
+          description: JWT successfully generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwtResponse"
+
+        "400":
+          description: Bad Request - Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "404":
+          description: Not Found - Could not create JWT for user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /claude-config:
+    get:
+      tags:
+        - Configuration
+      summary: Retrieve Claude configuration
+      description: |
+        Returns MCP server configuration for Claude Code integration.
+        
+        Requires:
+        - Bearer JWT for user authentication
+
+      security:
+        - bearerAuth: []
+
+      responses:
+        "200":
+          description: Claude config successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaudeConfigResponse"
+
+        "400":
+          description: Bad Request - Invalid or missing JWT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /token:
+    get:
+      tags:
+        - OAuth
       summary: Retrieve OAuth access token
       description: |
         Returns an OAuth access token for a previously authorized connection.
@@ -71,7 +138,40 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: API key in format "Bearer <api_key>"
+
   schemas:
+    JwtResponse:
+      type: object
+      properties:
+        jwt:
+          type: string
+          description: JWT token for user authentication
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      required:
+        - jwt
+
+    ClaudeConfigResponse:
+      type: object
+      properties:
+        mcpServers:
+          type: object
+          description: MCP server configuration object
+          example:
+            airtable:
+              command: npx
+              args:
+                - "-y"
+                - "@modelcontextprotocol/server-airtable"
+              env:
+                AIRTABLE_API_KEY: "{!env.AIRTABLE_API_KEY}"
+      required:
+        - mcpServers
+
     TokenResponse:
       type: object
       properties:
