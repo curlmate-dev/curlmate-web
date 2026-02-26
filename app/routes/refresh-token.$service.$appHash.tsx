@@ -1,7 +1,12 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { getRefreshToken } from "~/utils/backend.server";
+import { isApiHost } from "~/utils/get-host";
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
+  if (isApiHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
+
   const { service, appHash } = params;
 
   if (!service || !appHash) {

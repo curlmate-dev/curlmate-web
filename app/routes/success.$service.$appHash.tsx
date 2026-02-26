@@ -9,8 +9,13 @@ import { getFromRedis, getOrg } from "~/utils/backend.redis";
 import { getSession } from "~/utils/backend.cookie";
 import { Footer } from "~/ui/curlmate/footer";
 import { Header } from "~/ui/curlmate/header";
+import { isApiHost } from "~/utils/get-host";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+  if (isApiHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
+
   const { service, appHash } = params;
 
   const session = await getSession(request.headers.get("Cookie") || "");

@@ -4,8 +4,13 @@ import {
   getUserInfo,
   saveToken,
 } from "~/utils/backend.server";
+import { isApiHost } from "~/utils/get-host";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  if (isApiHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
+
   const url = new URL(request.url);
   const authCode = url.searchParams.get("code");
   const [appHash, service] = url.searchParams.get("state")?.split(":") ?? [];

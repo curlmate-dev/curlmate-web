@@ -4,8 +4,13 @@ import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { getApp, getFromRedis, getOrg } from "~/utils/backend.redis";
 import { Footer } from "~/ui/curlmate/footer";
 import { Header } from "~/ui/curlmate/header";
+import { isApiHost } from "~/utils/get-host";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+  if (isApiHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
+
   const session = await getSession(request.headers.get("Cookie") || "");
   const orgKey = session.get("orgKey");
 

@@ -4,8 +4,13 @@ import { requireOrg } from "~/utils/backend.server";
 import { getOrg } from "~/utils/backend.redis";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
+import { isApiHost } from "~/utils/get-host";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  if (isApiHost(request)) {
+    throw new Response("Not found", { status: 404 });
+  }
+
   const orgKey = await requireOrg(request);
   const org = await getOrg(orgKey);
 
