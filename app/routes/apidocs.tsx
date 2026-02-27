@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { isApiHost } from "~/utils/get-host";
+import { ApiDocsHeader } from "~/ui/curlmate/api-docs-header";
 
 export const links = () => [
   {
@@ -37,7 +37,7 @@ export default function ApiDocs() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f5f5dc]">
-      <Header />
+      <ApiDocsHeader />
       <div id="swagger-ui" className="flex-1 pb-8" />
       <Footer />
     </div>
