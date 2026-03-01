@@ -534,3 +534,25 @@ export async function buildCaludeConfig(apps: string[], accessToken: string) {
 
   return Object.fromEntries(entries.filter(Boolean));
 }
+
+export async function buildOpenCodeConfig(apps: string[], accessToken: string) {
+  const entries = await Promise.all(
+    apps.map(async (appKey) => {
+      const [, appHash, service] = appKey.split(":");
+      const xConnection = `${appHash}:${service}`;
+      return [
+        `${service}`,
+        {
+          type: "remote",
+          url: `https://${service}-mcp.curlmate.workers.dev/mcp`,
+          headers: {
+            "access-token": accessToken,
+            "x-connection": xConnection,
+          },
+        },
+      ];
+    }),
+  );
+
+  return Object.fromEntries(entries.filter(Boolean));
+}
