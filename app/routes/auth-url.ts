@@ -40,7 +40,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     );
   }
 
-  const connection = request.headers.get("x-connection ");
+  const connection = request.headers.get("x-connection");
   if (!connection) {
     return new Response(
       JSON.stringify({
