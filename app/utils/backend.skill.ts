@@ -27,7 +27,7 @@ export const CurlmateSkill = {
   opencodeConfigEndpointMethod: "GET",
   tokenEndpoint: "https://api.curlmate.dev/token",
   tokenEndpointAuthMethod: "Bearer JWT",
-  tokenEndpointMethod: "POST",
+  tokenEndpointMethod: "GET",
   tokenEndpointHeaders: {
     "Content-Type": "application/json",
     "x-connnection":
