@@ -1,4 +1,4 @@
-isProd: false
+isProd: true
 name: "github"
 authUrl: "https://github.com/login/oauth/authorize"
 tokenUrl: "https://github.com/login/oauth/access_token"
