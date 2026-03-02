@@ -46,19 +46,6 @@ const getAccessToken = async({jwt, connection}: {jwt: string | undefined, connec
 }
 ```
 
-Usage inside your MCP server:
-```typescript
-const { access_token } = await getAccessToken();
-// use access_token to call Airtable / Google / etc
-```
-
-Postman Curl:
-```bash
-curl --location 'https://curlmate.dev/api/token' \
-  --header 'Authorization: Bearer CURLMATE_JWT' \
-  --header 'x-connection: CURLMATE_CONNECTION'
-```
-
 ## Development
 
 Run the dev server:
