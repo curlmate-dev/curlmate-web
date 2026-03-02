@@ -7,5 +7,6 @@ scopes:
   "read:user": "read:user"
   "user:email": "user:email"
   "user": "user"
+  "repo": "repo"
 authTokenRequestUrlencoded: true
 refreshTokenAuthHeader: true
