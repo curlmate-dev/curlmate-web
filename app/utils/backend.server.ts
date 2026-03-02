@@ -504,7 +504,8 @@ function createAppHash(
   userId: string,
   scopes: string[],
 ) {
-  const parts = [cid, csec, userId, ...scopes];
+  const sortedScopes = [...scopes].sort();
+  const parts = [cid, csec, userId, ...sortedScopes];
 
   return crypto.createHash("md5").update(parts.join("|")).digest("hex");
 }
