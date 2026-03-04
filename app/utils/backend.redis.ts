@@ -1,13 +1,5 @@
 import { Redis } from "@upstash/redis";
-import {
-  App,
-  zGitUser,
-  zOrg,
-  zSessionUser,
-  SessionUser,
-  zApiKey,
-  Org,
-} from "./types";
+import { App, zSessionUser, SessionUser, zApiKey } from "./types";
 import { encrypt, decrypt } from "./backend.encryption";
 import { zAppCompat } from "./backend.migration";
 
@@ -63,43 +55,6 @@ export async function saveInRedis(opts: {
   await redis.set(key, encryptedValue);
 }
 
-export async function saveOrgInRedis(data: object) {
-  const org = zGitUser.parse(data);
-  if ("login" in org) {
-    const redisKey = `org:${org.login}`;
-    const existing = await redis.get(redisKey);
-    if (!existing) {
-      await redis.set(
-        redisKey,
-        JSON.stringify({
-          id: org.id,
-          login: org.login,
-          avatar: org.avatar_url,
-          email: org.email,
-          apps: [],
-        }),
-      );
-    }
-    return redisKey;
-  } else {
-    return {
-      error: "Email not received from Github",
-    };
-  }
-}
-
-export async function getAppsForOrg(orgKey: string): Promise<string[] | null> {
-  const rawOrg = await redis.get(orgKey);
-
-  if (!rawOrg) {
-    return null;
-  }
-
-  const org = zOrg.parse(rawOrg);
-  const apps = org.apps;
-  return apps;
-}
-
 export async function getAppsForUser(userId: string): Promise<string[] | null> {
   const rawUser = await redis.get(userId);
 
@@ -110,36 +65,6 @@ export async function getAppsForUser(userId: string): Promise<string[] | null> {
   const user = zSessionUser.parse(rawUser);
   const apps = user.apps;
   return apps;
-}
-
-export async function LinkAppToOrg(
-  orgKey: string,
-  appKey: string,
-): Promise<Org | null> {
-  const rawOrg = await redis.get(orgKey);
-
-  if (!rawOrg) {
-    return null;
-  }
-
-  const org = zOrg.parse(rawOrg);
-  const idx = org.apps.indexOf(appKey);
-  if (idx === -1) {
-    org.apps.push(appKey);
-    await redis.set(orgKey, org);
-  }
-  return org;
-}
-
-export async function getOrg(orgKey: string): Promise<Org | null> {
-  const rawOrg = await redis.get(orgKey);
-
-  if (!rawOrg) {
-    return null;
-  }
-
-  const org = zOrg.parse(rawOrg);
-  return org;
 }
 
 export async function getApp(opts: {

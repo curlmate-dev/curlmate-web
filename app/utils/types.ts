@@ -1,15 +1,5 @@
 import { z } from "zod";
 
-export const zOrg = z.object({
-  id: z.number(),
-  login: z.string(),
-  avatar: z.url(),
-  email: z.email().nullable(),
-  apps: z.array(z.string()),
-});
-
-export type Org = z.infer<typeof zOrg>;
-
 export const zGitUser = z.object({
   id: z.number(),
   login: z.string(),

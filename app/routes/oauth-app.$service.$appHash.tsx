@@ -1,7 +1,7 @@
 import { useLoaderData } from "@remix-run/react";
-import { getSession } from "~/utils/backend.cookie";
+import { userSession } from "~/utils/backend.cookie";
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { getApp, getFromRedis, getOrg } from "~/utils/backend.redis";
+import { getApp, getFromRedis } from "~/utils/backend.redis";
 import { Footer } from "~/ui/curlmate/footer";
 import { Header } from "~/ui/curlmate/header";
 import { isApiHost } from "~/utils/get-host";
@@ -11,10 +11,12 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     throw new Response("Not found", { status: 404 });
   }
 
-  const session = await getSession(request.headers.get("Cookie") || "");
-  const orgKey = session.get("orgKey");
+  const cookieHeader = request.headers.get("Cookie");
+  const { userId } = (await userSession.parse(cookieHeader)) || {};
 
-  const org = orgKey ? await getOrg(orgKey) : undefined;
+  if (!userId) {
+    return redirect("/");
+  }
 
   const { service, appHash } = params;
 
@@ -34,7 +36,6 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const token = tokenId ? await getFromRedis({ key: tokenId, service }) : null;
 
   return Response.json({
-    org,
     app: safeApp,
     token,
     service,
