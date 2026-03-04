@@ -4,8 +4,8 @@ import {
   LoaderFunctionArgs,
   redirect,
 } from "@remix-run/node";
-import { getSession, userSession } from "~/utils/backend.cookie";
-import { getOrg, redis } from "~/utils/backend.redis";
+import { userSession } from "~/utils/backend.cookie";
+import { redis } from "~/utils/backend.redis";
 import { OAuthConfig, zServiceConfig } from "~/utils/types";
 import { useState, useEffect, useRef } from "react";
 import { Header } from "~/ui/curlmate/header";
@@ -19,9 +19,6 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   }
 
   const { service } = params;
-  const session = await getSession(request.headers.get("Cookie") || "");
-  const orgKey = session.get("orgKey");
-  const org = orgKey ? await getOrg(orgKey) : undefined;
 
   const rawConfig = await redis.get(`yaml:${service}`);
   const serviceConfig = zServiceConfig.parse(rawConfig);
@@ -34,7 +31,6 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   };
 
   return Response.json({
-    org,
     oauthConfig,
   });
 };
@@ -45,9 +41,6 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   if (!service) {
     throw redirect("/404");
   }
-
-  const session = await getSession(request.headers.get("Cookie") || "");
-  const orgKey = session.get("orgKey");
 
   const { userId } = await userSession.parse(request.headers.get("Cookie"));
   const formData = await request.formData();
@@ -87,7 +80,6 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     userSelectedScope,
     service: service!,
     origin,
-    orgKey,
     isCurlmate,
     userId,
   });
