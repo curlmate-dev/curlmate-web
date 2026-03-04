@@ -11,6 +11,114 @@ servers:
   - url: http://localhost:5173
 
 paths:
+  /skill:
+    get:
+      tags:
+        - Metadata
+      summary: Get skill metadata
+      description: |
+        Returns metadata about the Curlmate skill including all available endpoints.
+        
+        No authentication required.
+
+      responses:
+        "200":
+          description: Skill metadata successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillResponse"
+
+  /connections:
+    get:
+      tags:
+        - OAuth
+      summary: List OAuth connections
+      description: |
+        Returns a list of all OAuth connections for the authenticated user.
+        
+        Requires:
+        - Bearer JWT for user authentication
+
+      security:
+        - bearerAuth: []
+
+      responses:
+        "200":
+          description: Connections successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectionsResponse"
+
+        "401":
+          description: Unauthorized - Invalid or missing JWT
+
+  /opencode-config:
+    get:
+      tags:
+        - Configuration
+      summary: Retrieve OpenCode configuration
+      description: |
+        Returns MCP server configuration for OpenCode integration.
+        
+        Requires:
+        - Bearer JWT for user authentication
+
+      security:
+        - bearerAuth: []
+
+      responses:
+        "200":
+          description: OpenCode config successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenCodeConfigResponse"
+
+        "401":
+          description: Unauthorized - Invalid or missing JWT
+
+  /auth-url:
+    get:
+      tags:
+        - OAuth
+      summary: Get OAuth authorization URL
+      description: |
+        Returns the OAuth authorization URL for initiating a new connection.
+
+        Requires:
+        - Bearer JWT for user authentication
+        - x-connection header identifying the service
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: x-connection
+          in: header
+          required: true
+          description: |
+            Connection identifier in the format:
+            connectionHash:service
+          schema:
+            type: string
+            example: 2443c362e25b8d1b8fcb13e3a473c282:github
+
+      responses:
+        "200":
+          description: Auth URL successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUrlResponse"
+
+        "400":
+          description: Bad Request - Missing connection header
+
+        "401":
+          description: Unauthorized - Invalid or missing JWT
+
   /jwt:
     get:
       tags:
@@ -197,3 +305,130 @@ components:
           example: Unauthorized
       required:
         - error
+
+    SkillResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Skill identifier
+          example: curlmate
+        name:
+          type: string
+          description: Skill name
+          example: Curlmate
+        description:
+          type: string
+          description: Skill description
+        skillEndpoint:
+          type: string
+          description: URL of the skill endpoint
+          example: https://api.curlmate.dev/skill
+        skillEndpointMethod:
+          type: string
+          description: HTTP method for skill endpoint
+          example: GET
+        skillEndpointAuthMethod:
+          type: string
+          description: Authentication method for skill endpoint
+          example: None
+        authUrlEndpoint:
+          type: string
+          description: URL for getting auth URL
+        authUrlEndpointMethod:
+          type: string
+        authUrlEndpointAuthMethod:
+          type: string
+        connectionsEndpoint:
+          type: string
+        connectionsEndpointMethod:
+          type: string
+        connectionsEndpointAuthMethod:
+          type: string
+        jwtEndpoint:
+          type: string
+        jwtEndpointAuthMethod:
+          type: string
+        jwtEndpointMethod:
+          type: string
+        claudeConfigEndpoint:
+          type: string
+        claudeConfigEndpointAuthMethod:
+          type: string
+        claudeConfigEndpointMethod:
+          type: string
+        opencodeConfigEndpoint:
+          type: string
+        opencodeConfigEndpointAuthMethod:
+          type: string
+        opencodeConfigEndpointMethod:
+          type: string
+        tokenEndpoint:
+          type: string
+        tokenEndpointAuthMethod:
+          type: string
+        tokenEndpointMethod:
+          type: string
+
+    ConnectionsResponse:
+      type: object
+      properties:
+        connections:
+          type: array
+          items:
+            $ref: "#/components/schemas/Connection"
+      required:
+        - connections
+
+    Connection:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Connection identifier
+          example: 7db5537dcb19f1d91fbe3faaf560bc02
+        service:
+          type: string
+          description: Service name
+          example: github
+      required:
+        - id
+        - service
+
+    OpenCodeConfigResponse:
+      type: object
+      properties:
+        mcpServers:
+          type: object
+          description: MCP server configuration object
+          additionalProperties:
+            $ref: "#/components/schemas/McpServer"
+      required:
+        - mcpServers
+
+    McpServer:
+      type: object
+      properties:
+        type:
+          type: string
+          example: remote
+        url:
+          type: string
+          example: https://github-mcp.curlmate.workers.dev/mcp
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+
+    AuthUrlResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          description: OAuth authorization URL
+          example: https://github.com/login/oauth/authorize?client_id=...
+        state:
+          type: string
+          description: State parameter for CSRF protection
+      required:
+        - url</
