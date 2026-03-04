@@ -60,11 +60,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   try {
-    const mcpServers = await buildOpenCodeConfig(user.apps, jwt);
+    const mcp = await buildOpenCodeConfig(user.apps, jwt);
 
     return Response.json(
       {
-        mcpServers,
+        $schema: "https://opencode.ai/config.json",
+        mcp,
       },
       {
         status: 200,
