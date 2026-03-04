@@ -5,8 +5,8 @@ import {
   redirect,
 } from "@remix-run/node";
 import { toJsonObject } from "curlconverter";
-import { getFromRedis, getOrg } from "~/utils/backend.redis";
-import { getSession } from "~/utils/backend.cookie";
+import { getFromRedis } from "~/utils/backend.redis";
+import { userSession } from "~/utils/backend.cookie";
 import { Footer } from "~/ui/curlmate/footer";
 import { Header } from "~/ui/curlmate/header";
 import { isApiHost } from "~/utils/get-host";
@@ -18,9 +18,12 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   const { service, appHash } = params;
 
-  const session = await getSession(request.headers.get("Cookie") || "");
-  const orgKey = session.get("orgKey");
-  const org = orgKey ? await getOrg(orgKey) : undefined;
+  const cookieHeader = request.headers.get("Cookie");
+  const { userId } = (await userSession.parse(cookieHeader)) || {};
+
+  if (!userId) {
+    return redirect("/");
+  }
 
   if (!service || !appHash) {
     throw redirect("/404");
@@ -32,7 +35,6 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   });
 
   return Response.json({
-    org,
     tokenResponse: decryptedTokenResponse,
   });
 };
@@ -66,12 +68,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function APICurlPage() {
-  const { org, tokenResponse } = useLoaderData<typeof loader>();
+  const { tokenResponse } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
   return (
     <main className="bg-[#f0e0d6] min-h-screen text-gray-900 font-mono">
-      <Header org={org} />
+      <Header />
       <section className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white border border-gray-400">
           <h2 className="underline text-gray-600 font-semibold">

@@ -5,7 +5,6 @@ import {
   createUserFromSession,
   getApp,
   getFromRedis,
-  LinkAppToOrg,
   LinkAppToUser,
   redis,
   saveInRedis,
@@ -119,7 +118,6 @@ export async function configureApp(opts: {
   userSelectedScope: string[];
   service: string;
   origin: string;
-  orgKey: string | undefined;
   userId: string | undefined;
   isCurlmate: boolean;
 }) {
@@ -130,7 +128,6 @@ export async function configureApp(opts: {
     userSelectedScope,
     service,
     origin,
-    orgKey,
     userId,
     isCurlmate,
   } = opts;
@@ -165,9 +162,7 @@ export async function configureApp(opts: {
 
   const CSEC = !isCurlmate ? clientSecret : curlmateCSEC!;
 
-  const appHash = orgKey
-    ? createAppHash(CID, CSEC, orgKey, userSelectedScope)
-    : createAppHash(CID, CSEC, userId!, userSelectedScope);
+  const appHash = createAppHash(CID, CSEC, userId!, userSelectedScope);
 
   const appKey = `app:${appHash}:${service}`;
 
@@ -228,11 +223,10 @@ export async function configureApp(opts: {
   }
 
   try {
-    orgKey && (await LinkAppToOrg(orgKey, appKey));
-    userId && !orgKey && (await LinkAppToUser({ userId, appKey }));
+    userId && (await LinkAppToUser({ userId, appKey }));
   } catch (error) {
     console.error(error);
-    Error("Could not link connection to org or user");
+    Error("Could not link connection to user");
   }
 
   return appHash;
@@ -322,15 +316,6 @@ export async function getRefreshToken(opts: {
   return {
     accessToken: value.accessToken,
   };
-}
-
-export async function requireOrg(request: Request): Promise<string> {
-  const session = await getSession(request.headers.get("Cookie") || "");
-  const orgKey = session.get("orgKey");
-  if (!orgKey) {
-    throw redirect("/");
-  }
-  return orgKey;
 }
 
 export function getScopeForService(opts: {
