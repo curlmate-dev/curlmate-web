@@ -42,7 +42,7 @@ export function LeftHeader() {
         </svg>
       </div>
       <div
-        className={`lg:hidden fixed inset-0 bg-[#fbf2e0] font-semibold flex-col ${isOpen ? "flex" : "hidden"}`}
+        className={`lg:hidden fixed inset-0 z-50 bg-[#fbf2e0] font-semibold flex-col ${isOpen ? "flex" : "hidden"}`}
       >
         {/* Header at top */}
         <header className="border-b border-gray-200 bg-white px-4 h-16 flex justify-between items-center">
