@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { userSession } from "~/utils/backend.cookie";
+import { userSession, flowSession } from "~/utils/backend.cookie";
 import { v4 as uuidv4 } from "uuid";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
@@ -15,11 +15,31 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const cookieHeader = request.headers.get("Cookie");
   const { userId } = (await userSession.parse(cookieHeader)) || {};
+  const flow = await flowSession.parse(cookieHeader);
 
   if (!userId) {
+    const newUserId = uuidv4();
+    const userSessionCookie = await userSession.serialize({
+      userId: newUserId,
+    });
+    const flowSessionCookie = await flowSession.serialize({
+      userId: newUserId,
+      flowStep: "started",
+    });
     return redirect("/", {
       headers: {
-        "Set-Cookie": await userSession.serialize({ userId: uuidv4() }),
+        "Set-Cookie": [userSessionCookie, flowSessionCookie].join(", "),
+      },
+    });
+  }
+
+  if (!flow || flow.flowStep !== "started") {
+    return redirect("/", {
+      headers: {
+        "Set-Cookie": await flowSession.serialize({
+          userId,
+          flowStep: "started",
+        }),
       },
     });
   }

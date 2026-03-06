@@ -67,6 +67,17 @@ export async function getAppsForUser(userId: string): Promise<string[] | null> {
   return apps;
 }
 
+export async function userOwnsApp(opts: {
+  userId: string;
+  appHash: string;
+  service: string;
+}): Promise<boolean> {
+  const { userId, appHash, service } = opts;
+  const appKey = `app:${appHash}:${service}`;
+  const userApps = await getAppsForUser(`user:${userId}`);
+  return userApps?.includes(appKey) ?? false;
+}
+
 export async function getApp(opts: {
   appHash: string;
   service: string;
