@@ -13,7 +13,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const { userId } = (await userSession.parse(cookieHeader)) || {};
   const flow = await flowSession.parse(cookieHeader);
 
-  if (!userId || !flow || flow.flowStep !== "connected") {
+  if (!userId || !flow) {
     return redirect("/");
   }
 

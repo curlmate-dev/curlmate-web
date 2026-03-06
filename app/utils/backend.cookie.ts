@@ -9,7 +9,7 @@ export const userSession = createCookie("user-session", {
   secrets: [process.env.SESSION_ID_SECRET!],
 });
 
-export type FlowStep = "started" | "connected";
+export type FlowStep = "started";
 
 export type FlowSessionData = { userId: string; flowStep: FlowStep };
 

@@ -24,15 +24,10 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   const cookieHeader = request.headers.get("Cookie");
   const { userId } = (await userSession.parse(cookieHeader)) || {};
-  const flow = await flowSession.parse(cookieHeader);
 
-  // Allow access if user has valid session and owns the app,
-  // or if the user has a flow cookie (may be different browser after OAuth)
-  if (userId && flow) {
-    const ownsApp = await userOwnsApp({ userId, appHash, service });
-    if (!ownsApp) {
-      return redirect("/");
-    }
+  const ownsApp = await userOwnsApp({ userId, appHash, service });
+  if (!ownsApp) {
+    return redirect("/");
   }
 
   const decryptedTokenResponse = await getFromRedis({
