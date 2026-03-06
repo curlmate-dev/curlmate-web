@@ -1,7 +1,8 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { userSession } from "~/utils/backend.cookie";
+import { userSession, flowSession } from "~/utils/backend.cookie";
 import { getRefreshToken } from "~/utils/backend.server";
 import { isApiHost } from "~/utils/get-host";
+import { userOwnsApp } from "~/utils/backend.redis";
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   if (isApiHost(request)) {
@@ -10,8 +11,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
   const cookieHeader = request.headers.get("Cookie");
   const { userId } = (await userSession.parse(cookieHeader)) || {};
+  const flow = await flowSession.parse(cookieHeader);
 
-  if (!userId) {
+  if (!userId || !flow || flow.flowStep !== "connected") {
     return redirect("/");
   }
 
@@ -20,6 +22,12 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   if (!service || !appHash) {
     throw redirect("/404");
   }
+
+  const ownsApp = await userOwnsApp({ userId, appHash, service });
+  if (!ownsApp) {
+    return redirect("/");
+  }
+
   try {
     await getRefreshToken({ appHash, service });
   } catch (error: unknown) {
@@ -36,5 +44,5 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     );
   }
 
-  return redirect(`/success/${service}/${appHash}`);
+  return redirect(`/oauth-token/${service}/${appHash}`);
 }

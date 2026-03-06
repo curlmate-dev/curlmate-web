@@ -1,7 +1,7 @@
 import { useLoaderData } from "@remix-run/react";
-import { userSession } from "~/utils/backend.cookie";
+import { userSession, flowSession } from "~/utils/backend.cookie";
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { getApp, getFromRedis } from "~/utils/backend.redis";
+import { getApp, getFromRedis, userOwnsApp } from "~/utils/backend.redis";
 import { Footer } from "~/ui/curlmate/footer";
 import { Header } from "~/ui/curlmate/header";
 import { isApiHost } from "~/utils/get-host";
@@ -13,8 +13,9 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   const cookieHeader = request.headers.get("Cookie");
   const { userId } = (await userSession.parse(cookieHeader)) || {};
+  const flow = await flowSession.parse(cookieHeader);
 
-  if (!userId) {
+  if (!userId || !flow || flow.flowStep !== "started") {
     return redirect("/");
   }
 
@@ -22,6 +23,11 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   if (!service || !appHash) {
     throw redirect("/404");
+  }
+
+  const ownsApp = await userOwnsApp({ userId, appHash, service });
+  if (!ownsApp) {
+    return redirect("/");
   }
 
   const app = await getApp({ appHash, service });
@@ -79,16 +85,28 @@ export default function OauthAppPage() {
             <div className="bg-white border border-gray-400 rounded p-6">
               {token ? (
                 <>
-                  <div className="bg-gray-100 p-3 rounded text-xs break-all mb-4">
-                    <pre className="whitespace-pre-wrap">
-                      {JSON.stringify(token, null, 2)}
-                    </pre>
+                  <div className="mb-4">
+                    <h3 className="text-md font-semibold mb-2">Token Status</h3>
+                    <p className="text-green-600 font-medium">Connected</p>
                   </div>
-                  <a href={`/refresh-token/${service}/${appHash}`}>
-                    <button className="bg-gray-800 text-white px-4 py-2 rounded text-sm hover:bg-gray-700">
-                      Refresh Token
-                    </button>
-                  </a>
+                  <div className="mb-4">
+                    <h3 className="text-md font-semibold mb-2">Scopes</h3>
+                    <p className="text-sm text-gray-600">
+                      {app.userSelectedScope.join(", ")}
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <a href={`/oauth-token/${service}/${appHash}`}>
+                      <button className="bg-gray-800 text-white px-4 py-2 rounded text-sm hover:bg-gray-700">
+                        View Token
+                      </button>
+                    </a>
+                    <a href={`/refresh-token/${service}/${appHash}`}>
+                      <button className="bg-gray-800 text-white px-4 py-2 rounded text-sm hover:bg-gray-700">
+                        Refresh Token
+                      </button>
+                    </a>
+                  </div>
                 </>
               ) : (
                 <div className="text-gray-500 mb-4">

@@ -1,6 +1,4 @@
 import * as crypto from "crypto";
-import { getSession } from "./backend.cookie";
-import { redirect } from "@remix-run/node";
 import {
   createUserFromSession,
   getApp,

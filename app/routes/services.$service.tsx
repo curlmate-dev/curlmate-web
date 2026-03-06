@@ -4,7 +4,7 @@ import {
   LoaderFunctionArgs,
   redirect,
 } from "@remix-run/node";
-import { userSession } from "~/utils/backend.cookie";
+import { userSession, flowSession } from "~/utils/backend.cookie";
 import { redis } from "~/utils/backend.redis";
 import { OAuthConfig, zServiceConfig } from "~/utils/types";
 import { useState, useEffect, useRef } from "react";
@@ -42,7 +42,15 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     throw redirect("/404");
   }
 
-  const { userId } = await userSession.parse(request.headers.get("Cookie"));
+  const cookieHeader = request.headers.get("Cookie");
+  const { userId } = (await userSession.parse(cookieHeader)) || {};
+  const flow = await flowSession.parse(cookieHeader);
+
+  // this stops users from skipping the welcome page and going directly to the service configuration without starting a flow
+  if (!userId || !flow || flow.flowStep !== "started") {
+    return redirect("/");
+  }
+
   const formData = await request.formData();
   const url = new URL(request.url);
 
