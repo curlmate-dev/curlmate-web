@@ -4,7 +4,7 @@ import {
   redirect,
 } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import { userSession } from "~/utils/backend.cookie";
+import { userSession, flowSession } from "~/utils/backend.cookie";
 import { createApiKey, deleteApiKey, listApiKeys } from "~/utils/backend.api";
 import { Header } from "~/ui/curlmate/header";
 import { Footer } from "~/ui/curlmate/footer";
@@ -17,8 +17,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const cookieHeader = request.headers.get("Cookie");
   const { userId } = (await userSession.parse(cookieHeader)) || {};
+  const flow = await flowSession.parse(cookieHeader);
 
-  if (!userId) {
+  if (!userId || !flow || flow.flowStep !== "started") {
     return redirect("/");
   }
 
@@ -30,8 +31,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   const cookieHeader = request.headers.get("Cookie");
   const { userId } = (await userSession.parse(cookieHeader)) || {};
+  const flow = await flowSession.parse(cookieHeader);
 
-  if (!userId) {
+  // this stops users from skipping the welcome page and going directly to the API keys management without starting a flow
+  // it also prevents unauthorized API access to create/delete keys without a valid user session and flow
+  if (!userId || !flow || flow.flowStep !== "started") {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
