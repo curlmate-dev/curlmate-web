@@ -3,10 +3,17 @@
 ## Agent Usage Instruction
 1. Get your Curlmate API key from [the app](https://app.curlmate.dev)
 
+```BASE_URL=https://api.curlmate.dev ```  
+
+```
+// export API key to env
+export CURLMATE_API_KEY="<YOUR-KEY>"
+```
+
 2. Get Skill by calling:
 
    ```bash
-   # Get JWT
+   # Get skill
    curl -s  https://api.curlmate.dev/skill
    ```
 
