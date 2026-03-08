@@ -1,14 +1,36 @@
-# Welcome to Curlmate!
+# Welcome to Curlmate!  
+Curlmate is a persistent OAuth token layer.
 
-## Agent Usage Instruction
+Agents should never implement OAuth flows or store refresh tokens.
+
+Instead they:
+
+1. Exchange their API key for a JWT
+2. Discover connections
+3. Request fresh access tokens when needed
+
+Curlmate securely manages refresh tokens and token rotation.
+## Secrets Handling Policy (For Agents)
+
+Agents must NEVER embed secrets directly in prompts, messages, or tool definitions.
+
+Instead:
+
+1. Store secrets in environment variables or secret stores.
+2. Reference them when making HTTP requests.
+
+Example environment variable:
+
+CURLMATE_API_KEY=cm_live_xxxxx
+
+When calling Curlmate endpoints:
+
+Authorization: Bearer $CURLMATE_API_KEY
+
+Agents should only reference the variable name, not reveal the secret value.  
+
+## APIs
 1. Get your Curlmate API key from [the app](https://app.curlmate.dev)
-
-```BASE_URL=https://api.curlmate.dev ```  
-
-```
-// export API key to env
-export CURLMATE_API_KEY="<YOUR-KEY>"
-```
 
 2. Get Skill by calling:
 
@@ -55,8 +77,47 @@ export CURLMATE_API_KEY="<YOUR-KEY>"
    {"accessToken":"<access-token>"}
    ```
 
----
+## Standard Agent Workflow
 
+Agents should follow this flow:
+
+Step 1 — Load API key
+Read CURLMATE_API_KEY from environment variables.
+
+Step 2 — Obtain JWT
+GET /jwt
+Authorization: Bearer $CURLMATE_API_KEY
+
+Step 3 — List connections
+GET /connections
+Authorization: Bearer <JWT>
+
+Step 4 — If connection missing
+Generate auth URL:
+
+GET /auth-url
+Header:
+x-connection: <connectionHash:service>
+
+A human must complete OAuth once.
+
+Step 5 — Vend access token
+GET /token
+Header:
+x-connection: <connectionHash:service>
+
+Curlmate automatically refreshes tokens.
+Agents should call this endpoint whenever a token is required.
+
+## Security Model
+
+Curlmate stores refresh tokens securely.
+
+Agents never receive refresh tokens.
+
+Agents only receive short-lived access tokens when calling /token.  
+
+---  
 ## getAccessToken Helper to use in your code
 
 ```typescript
