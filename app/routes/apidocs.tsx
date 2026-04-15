@@ -14,6 +14,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (!isApiHost(request) && process.env.NODE_ENV === "production") {
     return redirect("https://api.curlmate.dev/apidocs", 301);
   }
+  return null;
 }
 
 export default function ApiDocs() {
