@@ -6,6 +6,10 @@ userInfoUrl: "https://slack.com/api/users.info"
 scopes:
   "chat:write": "chat:write"
   "channels:read": "channels:read"
+  "channels:history": "channels:history"
+  "groups:history": "groups:history"
+  "mpim:history": "mpim:history"
+  "im:history": "im:history"
 userInfoScope: "users:read"
 authTokenRequestUrlencoded: true
 refreshTokenAuthHeader: true
